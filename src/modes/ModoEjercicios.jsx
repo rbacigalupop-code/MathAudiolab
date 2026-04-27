@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import * as Tone from "tone";
-import { ResponsiveBassNeck } from "../components/ResponsiveBassNeck";
+import { DynamicFretboard } from "../components/DynamicFretboard";
 import { StatCard } from "../components/StatCard";
 import { notaPara, TC, NIVELES, ACIERTOS_PARA_SUBIR, SOL } from "../constants/music";
 import { useSupabaseAuth } from "../hooks/useSupabaseAuth";
@@ -211,7 +211,8 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento }) 
         ))}
       </div>
 
-      <ResponsiveBassNeck
+      <DynamicFretboard
+        instrumento={instrumento}
         activeNote={an}
         onFretClick={async (n) => {
           setAN(n);

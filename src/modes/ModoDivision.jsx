@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import * as Tone from "tone";
 import { StatCard } from "../components/StatCard";
-import { DivisionGrid } from "../components/DivisionGrid";
+import { DivisionTimeline } from "../components/DivisionTimeline";
 import { useSupabaseAuth } from "../hooks/useSupabaseAuth";
 import { useWeakPoints } from "../hooks/useWeakPoints";
 import { useSyncToDatabase } from "../hooks/useSyncToDatabase";
@@ -257,7 +257,7 @@ export default function ModoDivision({ store, setStore, audio, instrumento }) {
           </div>
 
           <div style={{ margin: "14px 0", minHeight: 80 }}>
-            <DivisionGrid dividendo={dividendo} divisor={divisor} estado={estado} respuestaEsperada={respuestaEsperada} />
+            <DivisionTimeline dividendo={dividendo} divisor={divisor} estado={estado} respuestaEsperada={respuestaEsperada} />
           </div>
 
           <div style={{ display: "flex", gap: 8, justifyContent: "center", alignItems: "center", margin: "10px 0", flexWrap: "wrap" }}>
