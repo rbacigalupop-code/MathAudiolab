@@ -1,9 +1,9 @@
 import { useRef, useCallback } from "react";
 import * as Tone from "tone";
 
-let samplerInstance = null;
-let samplerPromise = null;
-let usingFallback = false;
+let samplerInstances = {};
+let samplerPromises = {};
+let usingFallback = {};
 let distortionNode = null;
 let masterVolume = null;
 let rockModeActive = false;
@@ -52,6 +52,50 @@ export const INSTRUMENTOS = {
     eq: { low: 0, mid: 1, high: 0 },
   },
 };
+
+function buildInstrumentSynth(instrumentType) {
+  const eq = new Tone.EQ3({ low: 6, mid: -2, high: -8 });
+  const vol = new Tone.Volume(-4);
+  let config, filter;
+
+  if (instrumentType === "bass-electric") {
+    config = {
+      oscillator: { type: "triangle" },
+      envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.8 },
+    };
+    filter = new Tone.Filter({ frequency: 400, type: "lowpass" });
+  } else if (instrumentType === "guitar-acoustic") {
+    config = {
+      oscillator: { type: "square" },
+      envelope: { attack: 0.005, decay: 0.15, sustain: 0, release: 0.5 },
+    };
+    filter = new Tone.Filter({ frequency: 8000, type: "highpass" });
+  } else if (instrumentType === "piano") {
+    config = {
+      oscillator: { type: "sine" },
+      envelope: { attack: 0.01, decay: 0.5, sustain: 0.3, release: 1.5 },
+    };
+    filter = new Tone.Filter({ frequency: 5000, type: "lowpass" });
+  } else {
+    config = {
+      oscillator: { type: "triangle" },
+      envelope: { attack: 0.005, decay: 0.3, sustain: 0.2, release: 1.2 },
+    };
+    filter = new Tone.Filter({ frequency: 5000, type: "lowpass" });
+  }
+
+  const synth = new Tone.PolySynth(Tone.Synth, config);
+  synth.connect(filter);
+  filter.connect(eq);
+  eq.connect(vol);
+  vol.connect(getRockOutputNode());
+
+  return {
+    triggerAttackRelease: (note, dur, time) => synth.triggerAttackRelease(note, dur, time),
+    _isFallback: true,
+    _instrumentType: instrumentType,
+  };
+}
 
 function buildFallbackSynth() {
   const eq = new Tone.EQ3({ low: 6, mid: -2, high: -8 });
@@ -111,27 +155,28 @@ function tryLoadSampler(cdnUrl, samples, eqConfig) {
 }
 
 function getSamplerSync(currentInstrument) {
-  if (samplerInstance) return Promise.resolve(samplerInstance);
-  if (samplerPromise) return samplerPromise;
+  if (samplerInstances[currentInstrument]) return Promise.resolve(samplerInstances[currentInstrument]);
+  if (samplerPromises[currentInstrument]) return samplerPromises[currentInstrument];
 
   const config = INSTRUMENTOS[currentInstrument];
-  samplerPromise = (async () => {
+  samplerPromises[currentInstrument] = (async () => {
     for (const cdn of config.cdns) {
       try {
         const s = await tryLoadSampler(cdn, config.samples, config.eq);
-        samplerInstance = s;
-        usingFallback = false;
+        samplerInstances[currentInstrument] = s;
+        usingFallback[currentInstrument] = false;
         console.log(`✓ Samples: ${cdn}`);
         return s;
       } catch (e) {
         console.warn(`✗ CDN: ${cdn}`, e.message);
       }
     }
-    usingFallback = true;
-    samplerInstance = buildFallbackSynth();
-    return samplerInstance;
+    usingFallback[currentInstrument] = true;
+    samplerInstances[currentInstrument] = buildInstrumentSynth(currentInstrument);
+    console.log(`🎹 Synth: ${currentInstrument}`);
+    return samplerInstances[currentInstrument];
   })();
-  return samplerPromise;
+  return samplerPromises[currentInstrument];
 }
 
 export function useAudioManager() {
@@ -211,8 +256,9 @@ export function useAudioManager() {
     playBass, playVictory, playLevelUp, playError, playLoseLife, playDivisionSuccess, setRockMode,
     getRockModeActive: () => rockModeActive,
     getSamplerSync,
-    getUsingFallback: () => usingFallback,
+    getUsingFallback: (instrumento) => instrumento ? usingFallback[instrumento] : Object.values(usingFallback).some(v => v),
     scheduleTimeout,
     cleanup,
+    Tone,
   };
 }
