@@ -1,0 +1,100 @@
+/* Mobile-first responsive styles */
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Prevent double-tap zoom on buttons */
+button, a, input[type="button"], input[type="submit"] {
+  touch-action: manipulation;
+}
+
+/* Prevent zoom on input focus on iOS */
+input[type="text"],
+input[type="number"],
+textarea,
+select {
+  font-size: 16px;
+}
+
+/* Ensure min touch targets */
+button, a[role="button"], input[type="button"], input[type="submit"] {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+@media (min-width: 481px) {
+  button, a[role="button"], input[type="button"], input[type="submit"] {
+    min-width: 48px;
+    min-height: 48px;
+  }
+}
+
+/* Canvas responsive */
+canvas {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Inputs responsive */
+input[type="number"],
+input[type="text"] {
+  width: 100%;
+  max-width: 100px;
+}
+
+@media (max-width: 480px) {
+  input[type="number"],
+  input[type="text"] {
+    min-height: 40px;
+    font-size: 16px;
+  }
+}
+
+/* Scrolling optimization */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Dark mode optimization */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #0f172a;
+    color: #e2e8f0;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: more) {
+  button {
+    border-width: 2px;
+  }
+}
+
+/* Print styles */
+@media print {
+  body {
+    background: white;
+    color: black;
+  }
+  button, .interactive {
+    display: none;
+  }
+}

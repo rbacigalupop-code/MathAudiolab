@@ -1,0 +1,379 @@
+import { useState, useEffect, useCallback, useRef } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import * as Tone from "tone";
+import { StatCard } from "../components/StatCard";
+import { useSupabaseAuth } from "../hooks/useSupabaseAuth";
+import { useWeakPoints } from "../hooks/useWeakPoints";
+import { useSyncToDatabase } from "../hooks/useSyncToDatabase";
+
+const POTENCIA_NIVELES = [
+  { id: 1, label: "Nivel 1", desc: "Exponente 0–3", maxExp: 3 },
+  { id: 2, label: "Nivel 2", desc: "Exponente 0–5", maxExp: 5 },
+  { id: 3, label: "Nivel 3", desc: "Exponente 0–7", maxExp: 7 },
+];
+
+const BASE_FREQ = { 2: "C2", 3: "G2", 5: "E2" };
+
+async function playEscaleraOctavas(base, exponente, audio, instrumento) {
+  const s = await audio.getSamplerSync(instrumento);
+  const t0 = Tone.now();
+  const baseNote = BASE_FREQ[base] || "C2";
+  const baseFreq = Tone.Frequency(baseNote).toFrequency();
+  const STEP = 0.35;
+  for (let i = 0; i <= exponente; i++) {
+    const freq = baseFreq * Math.pow(base, i);
+    if (freq > 4000) break;
+    s.triggerAttackRelease(freq, "8n", t0 + i * STEP);
+  }
+}
+
+export default function ModoPotencias({ store, setStore, audio, instrumento, setRockActive }) {
+  const [nivel, setNivel] = useState(1);
+  const [base, setBase] = useState(2);
+  const [exp, setExp] = useState(null);
+  const [input, setInput] = useState("");
+  const [estado, setEstado] = useState("esperando");
+  const [score, setScore] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [intentos, setIntentos] = useState(0);
+  const [rockActive, setRockActiveLocal] = useState(false);
+  const inputRef = useRef(null);
+  const timeoutsRef = useRef([]);
+  const cfg = POTENCIA_NIVELES[nivel - 1];
+
+  const { userId, isReady } = useSupabaseAuth();
+  const { recordAttempt } = useWeakPoints(userId);
+  useSyncToDatabase(store, userId);
+
+  useEffect(() => {
+    return () => timeoutsRef.current.forEach(clearTimeout);
+  }, []);
+
+  const newQ = useCallback(() => {
+    setExp(Math.floor(Math.random() * (cfg.maxExp + 1)));
+    setBase([2, 3, 5][Math.floor(Math.random() * 3)]);
+    setInput("");
+    setEstado("esperando");
+  }, [cfg.maxExp]);
+
+  useEffect(() => {
+    newQ();
+  }, [nivel]);
+
+  useEffect(() => {
+    if (estado === "esperando") inputRef.current?.focus();
+  }, [estado, exp]);
+
+  const correcto = base !== null && exp !== null ? Math.pow(base, exp) : 0;
+  const baseColor = base === 2 ? "#f97316" : base === 3 ? "#22c55e" : "#a855f7";
+  const rockBorder = rockActive ? "#dc2626" : baseColor;
+
+  const playPista = useCallback(async () => {
+    if (exp === null) return;
+    await playEscaleraOctavas(base, Math.min(exp, 5), audio, instrumento);
+  }, [base, exp, audio, instrumento]);
+
+  const check = useCallback(async () => {
+    if (!input || exp === null) return;
+    const resp = parseInt(input);
+    const isCorrect = resp === correcto;
+
+    setIntentos((i) => i + 1);
+
+    // Record in weak_points
+    if (userId && isReady) {
+      recordAttempt("powers", base, exp, isCorrect);
+    }
+
+    if (isCorrect) {
+      setEstado("correcto");
+      setScore((s) => s + 1);
+      const ns = streak + 1;
+      setStreak(ns);
+      if (ns >= 5 && !rockActive) {
+        setRockActiveLocal(true);
+        setRockActive(true);
+        audio.setRockMode(true);
+      }
+      await playEscaleraOctavas(base, exp, audio, instrumento);
+      setStore((prev) => {
+        const next = {
+          ...prev,
+          rachaGlobal: prev.rachaGlobal + 1,
+          mejorRacha: Math.max(prev.mejorRacha, prev.rachaGlobal + 1),
+        };
+
+        // Effects unlock
+        if (ns >= 5 && !next.unlocked_effects?.includes("distortion")) {
+          next.unlocked_effects = [...(next.unlocked_effects || []), "distortion"];
+        }
+        if (next.mejorRacha >= 30 && !next.unlocked_effects?.includes("reverb")) {
+          next.unlocked_effects = [...(next.unlocked_effects || []), "reverb"];
+        }
+        if (next.mejorRacha >= 50 && !next.unlocked_effects?.includes("wahwah")) {
+          next.unlocked_effects = [...(next.unlocked_effects || []), "wahwah"];
+        }
+
+        return next;
+      });
+    } else {
+      setEstado("incorrecto");
+      setStreak(0);
+      if (rockActive) {
+        setRockActiveLocal(false);
+        setRockActive(false);
+        audio.setRockMode(false);
+      }
+      await audio.playError(instrumento);
+    }
+  }, [input, exp, base, correcto, streak, audio, instrumento, rockActive, setStore, userId, isReady, recordAttempt]);
+
+  const handleKey = (e) => {
+    if (e.key === "Enter") estado === "correcto" ? newQ() : check();
+  };
+
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 5, marginBottom: 10, overflowX: "auto", paddingBottom: 2 }}>
+        {POTENCIA_NIVELES.map((n) => (
+          <button
+            key={n.id}
+            onClick={() => setNivel(n.id)}
+            style={{
+              flex: "0 0 auto",
+              padding: "clamp(4px, 1vw, 6px) clamp(8px, 1.5vw, 10px)",
+              borderRadius: 10,
+              border: nivel === n.id ? "2px solid #f97316" : "2px solid #334155",
+              background: nivel === n.id ? "#f97316" : "#1e293b",
+              color: nivel === n.id ? "#fff" : "#94a3b8",
+              fontWeight: 700,
+              fontSize: "clamp(8px, 1.5vw, 10px)",
+              cursor: "pointer",
+              transition: "all .15s",
+              minHeight: 40,
+              minWidth: 70,
+            }}
+          >
+            <div>{n.label}</div>
+            <div style={{ fontSize: "clamp(6px, 1vw, 8px)", opacity: 0.75 }}>{n.desc}</div>
+          </button>
+        ))}
+      </div>
+
+      <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+        {[
+          { l: "✅ Correctas", v: score, c: "#22c55e" },
+          { l: "📝 Intentos", v: intentos, c: "#64748b" },
+          { l: rockActive ? "🤘 ROCK" : "🔥 Racha", v: streak, c: rockActive ? "#dc2626" : "#f97316" },
+        ].map(({ l, v, c }) => (
+          <StatCard key={l} label={l} value={v} color={c} variant={rockActive ? "dark" : "default"} />
+        ))}
+      </div>
+
+      {exp !== null && (
+        <motion.div
+          key={`${base}-${exp}`}
+          initial={{ scale: 0.95, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          style={{
+            background: rockActive ? "#1f0808" : "#1e293b",
+            border: `2px solid ${rockBorder}`,
+            borderRadius: 16,
+            padding: "clamp(14px, 3vw, 20px) clamp(10px, 2vw, 14px)",
+            textAlign: "center",
+          }}
+        >
+          <div style={{ fontSize: "clamp(10px, 1.5vw, 12px)", color: "#64748b", marginBottom: 8 }}>
+            ¿Cuánto es esta potencia?
+          </div>
+
+          <div style={{ fontSize: "clamp(32px, 10vw, 48px)", fontWeight: 900, color: "#f1f5f9", letterSpacing: 1, lineHeight: 1 }}>
+            <span style={{ color: baseColor }}>{base}</span>
+            <sup style={{ fontSize: "clamp(16px, 5vw, 24px)", color: rockBorder, marginLeft: 2 }}>{exp}</sup>
+          </div>
+          <div style={{ fontSize: "clamp(10px, 1.5vw, 12px)", color: "#64748b", margin: "8px 0 14px" }}>
+            "{base} elevado a {exp}"
+          </div>
+
+          <div style={{ display: "flex", gap: 4, justifyContent: "center", alignItems: "center", flexWrap: "wrap", margin: "10px 0 16px" }}>
+            {exp === 0 ? (
+              <div
+                style={{
+                  padding: "6px 12px",
+                  borderRadius: 8,
+                  background: baseColor + "22",
+                  border: `1.5px solid ${baseColor}`,
+                  color: baseColor,
+                  fontWeight: 700,
+                  fontSize: "clamp(12px, 2vw, 14px)",
+                }}
+              >
+                cualquier número⁰ = 1
+              </div>
+            ) : (
+              Array.from({ length: exp }).map((_, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ delay: i * 0.08 }}
+                    style={{
+                      padding: "8px 14px",
+                      borderRadius: 8,
+                      background: baseColor + "22",
+                      border: `2px solid ${baseColor}`,
+                      color: baseColor,
+                      fontWeight: 800,
+                      fontSize: "clamp(14px, 3vw, 18px)",
+                      minWidth: 30,
+                      textAlign: "center",
+                    }}
+                  >
+                    {base}
+                  </motion.div>
+                  {i < exp - 1 && <span style={{ fontSize: "clamp(14px, 3vw, 18px)", color: "#475569", fontWeight: 700 }}>×</span>}
+                </div>
+              ))
+            )}
+          </div>
+
+          <div style={{ display: "flex", gap: 8, justifyContent: "center", alignItems: "center", margin: "10px 0", flexWrap: "wrap" }}>
+            <input
+              ref={inputRef}
+              type="number"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={handleKey}
+              disabled={estado !== "esperando"}
+              placeholder="?"
+              autoFocus
+              style={{
+                width: 120,
+                textAlign: "center",
+                fontSize: "clamp(20px, 5vw, 28px)",
+                fontWeight: 800,
+                borderRadius: 10,
+                border: `2.5px solid ${estado === "correcto" ? "#22c55e" : estado === "incorrecto" ? "#ef4444" : rockBorder}`,
+                padding: "10px 4px",
+                outline: "none",
+                color: "#1f2937",
+                background: "#fff",
+                minHeight: 44,
+              }}
+            />
+          </div>
+
+          <AnimatePresence>
+            {estado === "correcto" && (
+              <motion.div initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
+                <div
+                  style={{
+                    color: "#22c55e",
+                    fontWeight: 700,
+                    fontSize: "clamp(14px, 2vw, 17px)",
+                    marginBottom: 8,
+                  }}
+                >
+                  {rockActive ? "🤘 ¡ROCK!" : "🎸 ¡Correcto!"} {base}
+                  <sup>{exp}</sup> = {correcto}
+                  <div style={{ fontSize: "clamp(9px, 1.5vw, 11px)", color: "#22c55e88", marginTop: 4 }}>
+                    Escucha cómo cada paso duplica la frecuencia (octava)
+                  </div>
+                </div>
+              </motion.div>
+            )}
+            {estado === "incorrecto" && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                <div style={{ color: "#ef4444", fontWeight: 600, fontSize: "clamp(11px, 2vw, 13px)", marginBottom: 8 }}>
+                  Recuerda: {exp === 0 ? "cualquier número elevado a 0 es 1" : `${Array.from({ length: exp }, () => base).join(" × ")}`}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" }}>
+            {estado === "esperando" && (
+              <>
+                <motion.button
+                  whileTap={{ scale: 0.94 }}
+                  onClick={check}
+                  style={{
+                    background: rockBorder,
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: 10,
+                    padding: "clamp(8px, 1.5vw, 10px) clamp(16px, 3vw, 22px)",
+                    fontWeight: 700,
+                    fontSize: "clamp(12px, 2vw, 14px)",
+                    cursor: "pointer",
+                    minHeight: 40,
+                  }}
+                >
+                  Comprobar ✓
+                </motion.button>
+                <motion.button
+                  whileTap={{ scale: 0.94 }}
+                  onClick={playPista}
+                  style={{
+                    background: "transparent",
+                    color: rockBorder,
+                    border: `2px solid ${rockBorder}`,
+                    borderRadius: 10,
+                    padding: "clamp(8px, 1.5vw, 10px) clamp(10px, 2vw, 14px)",
+                    fontWeight: 600,
+                    fontSize: "clamp(10px, 1.5vw, 12px)",
+                    cursor: "pointer",
+                    minHeight: 40,
+                  }}
+                >
+                  🎸 Escalera de octavas
+                </motion.button>
+              </>
+            )}
+            {estado !== "esperando" && (
+              <motion.button
+                whileTap={{ scale: 0.94 }}
+                onClick={newQ}
+                style={{
+                  background: rockBorder,
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 10,
+                  padding: "clamp(8px, 1.5vw, 10px) clamp(16px, 3vw, 24px)",
+                  fontWeight: 700,
+                  fontSize: "clamp(12px, 2vw, 15px)",
+                  cursor: "pointer",
+                  minHeight: 40,
+                }}
+              >
+                Siguiente →
+              </motion.button>
+            )}
+          </div>
+        </motion.div>
+      )}
+
+      <AnimatePresence>
+        {rockActive && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            style={{
+              marginTop: 12,
+              padding: "10px 14px",
+              background: "linear-gradient(90deg,#7f1d1d,#dc2626)",
+              borderRadius: 12,
+              color: "#fff",
+              textAlign: "center",
+              fontWeight: 700,
+              fontSize: "clamp(11px, 1.5vw, 13px)",
+            }}
+          >
+            🤘 ROCK MODE ACTIVADO — 5 aciertos seguidos
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}

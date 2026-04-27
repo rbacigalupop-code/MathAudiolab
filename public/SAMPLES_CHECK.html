@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verificador de Samples</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #0f172a; color: #e2e8f0; }
+    .container { max-width: 800px; margin: 0 auto; }
+    h1 { color: #f97316; }
+    .instrument { border: 1px solid #334155; padding: 15px; margin: 10px 0; border-radius: 8px; }
+    .cdn-test { margin-left: 20px; padding: 8px; background: #1e293b; border-radius: 4px; margin: 5px 0; font-family: monospace; font-size: 12px; }
+    .success { color: #22c55e; }
+    .error { color: #ef4444; }
+    .loading { color: #f97316; }
+    button { background: #f97316; color: #fff; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔍 Verificador de Samples de Audio</h1>
+    <p>Haz clic en "Verificar" para probar si los samples cargan correctamente.</p>
+
+    <button onclick="runTests()">▶️ Verificar Samples</button>
+    <div id="results"></div>
+  </div>
+
+  <script>
+    async function testCDN(cdnUrl, sampleKey) {
+      const url = cdnUrl + sampleKey + '.mp3';
+      try {
+        const response = await fetch(url, { method: 'HEAD', mode: 'no-cors' });
+        return response.ok || response.status === 0; // 0 = CORS allowed but can't check status
+      } catch {
+        return false;
+      }
+    }
+
+    async function runTests() {
+      const results = document.getElementById('results');
+      results.innerHTML = '';
+
+      const INSTRUMENTOS = {
+        'bass-electric': {
+          label: '🎸 Bajo eléctrico',
+          cdns: [
+            'https://nbrosowsky.github.io/tonejs-instruments/samples/bass-electric/',
+            'https://cdn.jsdelivr.net/npm/tonejs-instrument-bass-electric-mp3@1.1.2/',
+          ],
+          testSamples: ['C2', 'G2', 'D3'],
+        },
+        'piano': {
+          label: '🎹 Piano',
+          cdns: [
+            'https://tonejs.github.io/audio/salamander/',
+          ],
+          testSamples: ['C2', 'C4'],
+        },
+        'guitar-acoustic': {
+          label: '🎸 Guitarra acústica',
+          cdns: [
+            'https://nbrosowsky.github.io/tonejs-instruments/samples/guitar-acoustic/',
+            'https://cdn.jsdelivr.net/npm/tonejs-instrument-guitar-acoustic-mp3@1.1.2/',
+          ],
+          testSamples: ['G2', 'C3', 'E3'],
+        },
+      };
+
+      for (const [key, inst] of Object.entries(INSTRUMENTOS)) {
+        const div = document.createElement('div');
+        div.className = 'instrument';
+        div.innerHTML = `<h2>${inst.label}</h2>`;
+
+        for (const cdn of inst.cdns) {
+          const cdnDiv = document.createElement('div');
+          cdnDiv.className = 'cdn-test loading';
+          cdnDiv.textContent = `⏳ Probando: ${cdn}`;
+          div.appendChild(cdnDiv);
+
+          let foundWorking = false;
+          for (const sample of inst.testSamples) {
+            const ok = await testCDN(cdn, sample);
+            if (ok) {
+              foundWorking = true;
+              break;
+            }
+          }
+
+          if (foundWorking) {
+            cdnDiv.className = 'cdn-test success';
+            cdnDiv.textContent = `✅ ${cdn}`;
+          } else {
+            cdnDiv.className = 'cdn-test error';
+            cdnDiv.textContent = `❌ ${cdn}`;
+          }
+        }
+
+        results.appendChild(div);
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,219 @@
+import { useRef, useCallback } from "react";
+import * as Tone from "tone";
+
+let samplerInstance = null;
+let samplerPromise = null;
+let usingFallback = false;
+let distortionNode = null;
+let masterVolume = null;
+let rockModeActive = false;
+
+export const INSTRUMENTOS = {
+  "bass-electric": {
+    label: "🎸 Bajo eléctrico",
+    cdns: [
+      "https://nbrosowsky.github.io/tonejs-instruments/samples/bass-electric/",
+      "https://cdn.jsdelivr.net/npm/tonejs-instrument-bass-electric-mp3@1.1.2/",
+      "https://storage.googleapis.com/magentadata/js/soundfont/sgm_plus/",
+    ],
+    samples: {
+      E1:"E1.mp3",F1:"F1.mp3","F#1":"Fs1.mp3",G1:"G1.mp3","G#1":"Gs1.mp3",A1:"A1.mp3","A#1":"As1.mp3",B1:"B1.mp3",
+      C2:"C2.mp3","C#2":"Cs2.mp3",D2:"D2.mp3","D#2":"Ds2.mp3",E2:"E2.mp3",F2:"F2.mp3","F#2":"Fs2.mp3",G2:"G2.mp3","G#2":"Gs2.mp3",A2:"A2.mp3","A#2":"As2.mp3",B2:"B2.mp3",
+      C3:"C3.mp3","C#3":"Cs3.mp3",D3:"D3.mp3","D#3":"Ds3.mp3",E3:"E3.mp3",F3:"F3.mp3","F#3":"Fs3.mp3",G3:"G3.mp3","G#3":"Gs3.mp3",A3:"A3.mp3",
+    },
+    eq: { low: 2, mid: 0, high: -3 },
+  },
+  "piano": {
+    label: "🎹 Piano",
+    cdns: [
+      "https://tonejs.github.io/audio/salamander/",
+      "https://cdn.jsdelivr.net/npm/@tonejs/piano/",
+    ],
+    samples: {
+      A0:"A0.mp3",C1:"C1.mp3","D#1":"Ds1.mp3","F#1":"Fs1.mp3",
+      A1:"A1.mp3",C2:"C2.mp3","D#2":"Ds2.mp3","F#2":"Fs2.mp3",
+      A2:"A2.mp3",C3:"C3.mp3","D#3":"Ds3.mp3","F#3":"Fs3.mp3",
+      A3:"A3.mp3",C4:"C4.mp3","D#4":"Ds4.mp3","F#4":"Fs4.mp3",
+      A4:"A4.mp3",C5:"C5.mp3","D#5":"Ds5.mp3","F#5":"Fs5.mp3",
+      A5:"A5.mp3",C6:"C6.mp3",
+    },
+    eq: { low: -2, mid: 0, high: 1 },
+  },
+  "guitar-acoustic": {
+    label: "🎸 Guitarra acústica",
+    cdns: [
+      "https://nbrosowsky.github.io/tonejs-instruments/samples/guitar-acoustic/",
+      "https://cdn.jsdelivr.net/npm/tonejs-instrument-guitar-acoustic-mp3@1.1.2/",
+    ],
+    samples: {
+      E2:"E2.mp3",F2:"F2.mp3","F#2":"Fs2.mp3",G2:"G2.mp3","G#2":"Gs2.mp3",A2:"A2.mp3","A#2":"As2.mp3",B2:"B2.mp3",
+      C3:"C3.mp3","C#3":"Cs3.mp3",D3:"D3.mp3","D#3":"Ds3.mp3",E3:"E3.mp3",F3:"F3.mp3","F#3":"Fs3.mp3",G3:"G3.mp3","G#3":"Gs3.mp3",A3:"A3.mp3","A#3":"As3.mp3",B3:"B3.mp3",
+      C4:"C4.mp3","C#4":"Cs4.mp3",D4:"D4.mp3",E4:"E4.mp3",
+    },
+    eq: { low: 0, mid: 1, high: 0 },
+  },
+};
+
+function buildFallbackSynth() {
+  const eq = new Tone.EQ3({ low: 6, mid: -2, high: -8 });
+  const vol = new Tone.Volume(-4);
+  const synth = new Tone.PolySynth(Tone.Synth, {
+    oscillator: { type: "triangle" },
+    envelope: { attack: 0.005, decay: 0.3, sustain: 0.2, release: 1.2 },
+  });
+  synth.connect(eq); eq.connect(vol); vol.connect(getRockOutputNode());
+  return { triggerAttackRelease: (note, dur, time) => synth.triggerAttackRelease(note, dur, time), _isFallback: true };
+}
+
+function ensureMasterChain() {
+  if (distortionNode) return;
+  distortionNode = new Tone.Distortion({ distortion: 0, wet: 0 });
+  masterVolume = new Tone.Volume(0);
+  distortionNode.connect(masterVolume);
+  masterVolume.toDestination();
+}
+
+function getRockOutputNode() {
+  ensureMasterChain();
+  return distortionNode;
+}
+
+function tryLoadSampler(cdnUrl, samples, eqConfig) {
+  return new Promise((resolve, reject) => {
+    let resolved = false;
+    const timeout = setTimeout(() => {
+      if (!resolved) { resolved = true; reject(new Error("timeout")); }
+    }, 6000);
+
+    try {
+      const s = new Tone.Sampler(samples, {
+        baseUrl: cdnUrl,
+        release: 1.5,
+        onload: () => {
+          if (resolved) return;
+          resolved = true;
+          clearTimeout(timeout);
+          const eq = new Tone.EQ3(eqConfig);
+          const vol = new Tone.Volume(-2);
+          s.connect(eq); eq.connect(vol); vol.connect(getRockOutputNode());
+          resolve(s);
+        },
+        onerror: (e) => {
+          if (resolved) return;
+          resolved = true;
+          clearTimeout(timeout);
+          reject(e);
+        }
+      });
+    } catch (e) {
+      if (!resolved) { resolved = true; clearTimeout(timeout); reject(e); }
+    }
+  });
+}
+
+function getSamplerSync(currentInstrument) {
+  if (samplerInstance) return Promise.resolve(samplerInstance);
+  if (samplerPromise) return samplerPromise;
+
+  const config = INSTRUMENTOS[currentInstrument];
+  samplerPromise = (async () => {
+    for (const cdn of config.cdns) {
+      try {
+        const s = await tryLoadSampler(cdn, config.samples, config.eq);
+        samplerInstance = s;
+        usingFallback = false;
+        console.log(`✓ Samples: ${cdn}`);
+        return s;
+      } catch (e) {
+        console.warn(`✗ CDN: ${cdn}`, e.message);
+      }
+    }
+    usingFallback = true;
+    samplerInstance = buildFallbackSynth();
+    return samplerInstance;
+  })();
+  return samplerPromise;
+}
+
+export function useAudioManager() {
+  const timeoutsRef = useRef([]);
+
+  const cleanup = useCallback(() => {
+    timeoutsRef.current.forEach(clearTimeout);
+    timeoutsRef.current = [];
+  }, []);
+
+  const scheduleTimeout = useCallback((fn, delay) => {
+    const id = setTimeout(fn, delay);
+    timeoutsRef.current.push(id);
+    return id;
+  }, []);
+
+  const playBass = useCallback(async (note, dur = "4n", time, currentInstrument) => {
+    const s = await getSamplerSync(currentInstrument);
+    s.triggerAttackRelease(note, dur, time);
+  }, []);
+
+  const playVictory = useCallback(async (currentInstrument) => {
+    const s = await getSamplerSync(currentInstrument);
+    const t0 = Tone.now();
+    [["G2","8n"],["B2","8n"],["D3","8n"],["G3","4n"]].forEach(([n,d],i) => s.triggerAttackRelease(n, d, t0 + i*0.18));
+  }, []);
+
+  const playLevelUp = useCallback(async (currentInstrument) => {
+    const s = await getSamplerSync(currentInstrument);
+    const t0 = Tone.now();
+    [["G2","8n"],["C3","8n"],["E3","8n"],["G3","8n"],["C4","4n"]].forEach(([n,d],i) => s.triggerAttackRelease(n, d, t0 + i*0.15));
+  }, []);
+
+  const playError = useCallback(async (currentInstrument) => {
+    const s = await getSamplerSync(currentInstrument);
+    const t0 = Tone.now();
+    s.triggerAttackRelease("C3", "32n", t0);
+    s.triggerAttackRelease("C#3", "32n", t0 + 0.08);
+  }, []);
+
+  const playLoseLife = useCallback(async (currentInstrument) => {
+    const s = await getSamplerSync(currentInstrument);
+    const t0 = Tone.now();
+    [["G2","16n"],["F2","16n"],["E2","8n"]].forEach(([n,d],i) => s.triggerAttackRelease(n, d, t0 + i*0.18));
+  }, []);
+
+  const playDivisionSuccess = useCallback(async (currentInstrument, divisor, itemsPerGrupo) => {
+    const s = await getSamplerSync(currentInstrument);
+    const t0 = Tone.now();
+    const baseNotes = ["E3", "G3", "B3", "D4", "E4"];
+    const STEP = 0.12;
+    let time = t0;
+    for (let g = 0; g < divisor; g++) {
+      for (let i = 0; i < itemsPerGrupo; i++) {
+        const noteIdx = (g * itemsPerGrupo + i) % baseNotes.length;
+        s.triggerAttackRelease(baseNotes[noteIdx], "16n", time);
+        time += STEP;
+      }
+      time += STEP * 0.5;
+    }
+    s.triggerAttackRelease("E4", "4n", time);
+  }, []);
+
+  const setRockMode = useCallback((active) => {
+    ensureMasterChain();
+    rockModeActive = active;
+    if (active) {
+      distortionNode.distortion = 0.4;
+      distortionNode.wet.value = 0.5;
+    } else {
+      distortionNode.distortion = 0;
+      distortionNode.wet.value = 0;
+    }
+  }, []);
+
+  return {
+    playBass, playVictory, playLevelUp, playError, playLoseLife, playDivisionSuccess, setRockMode,
+    getRockModeActive: () => rockModeActive,
+    getSamplerSync,
+    getUsingFallback: () => usingFallback,
+    scheduleTimeout,
+    cleanup,
+  };
+}
