@@ -10,9 +10,8 @@ export default function SamplesTest({ onBack }) {
     "bass-electric": {
       label: "🎸 Bajo eléctrico",
       cdns: [
-        "https://cdn.jsdelivr.net/npm/tonejs-instrument-bass-electric@1.1.4/",
-        "https://nbrosowsky.github.io/tonejs-instruments/samples/bass-electric/",
         "https://storage.googleapis.com/magentadata/js/soundfont/sgm_plus/",
+        "https://cdn.jsdelivr.net/npm/tonejs-instrument-bass-electric@1.1.4/",
       ],
       samples: { C2: "C2.mp3", G2: "G2.mp3", D3: "D3.mp3", A3: "A3.mp3" },
     },
@@ -27,9 +26,8 @@ export default function SamplesTest({ onBack }) {
     "guitar-acoustic": {
       label: "🎸 Guitarra acústica",
       cdns: [
-        "https://cdn.jsdelivr.net/npm/tonejs-instrument-guitar-acoustic@1.1.4/",
-        "https://nbrosowsky.github.io/tonejs-instruments/samples/guitar-acoustic/",
         "https://storage.googleapis.com/magentadata/js/soundfont/sgm_plus/",
+        "https://cdn.jsdelivr.net/npm/tonejs-instrument-guitar-acoustic@1.1.4/",
       ],
       samples: { G2: "G2.mp3", C3: "C3.mp3", E3: "E3.mp3", G3: "G3.mp3" },
     },
