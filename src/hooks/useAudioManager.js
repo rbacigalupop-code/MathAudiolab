@@ -12,8 +12,8 @@ export const INSTRUMENTOS = {
   "bass-electric": {
     label: "🎸 Bajo eléctrico",
     cdns: [
+      "https://cdn.jsdelivr.net/npm/tonejs-instrument-bass-electric@1.1.4/",
       "https://nbrosowsky.github.io/tonejs-instruments/samples/bass-electric/",
-      "https://cdn.jsdelivr.net/npm/tonejs-instrument-bass-electric-mp3@1.1.2/",
       "https://storage.googleapis.com/magentadata/js/soundfont/sgm_plus/",
     ],
     samples: {
@@ -42,8 +42,9 @@ export const INSTRUMENTOS = {
   "guitar-acoustic": {
     label: "🎸 Guitarra acústica",
     cdns: [
+      "https://cdn.jsdelivr.net/npm/tonejs-instrument-guitar-acoustic@1.1.4/",
       "https://nbrosowsky.github.io/tonejs-instruments/samples/guitar-acoustic/",
-      "https://cdn.jsdelivr.net/npm/tonejs-instrument-guitar-acoustic-mp3@1.1.2/",
+      "https://storage.googleapis.com/magentadata/js/soundfont/sgm_plus/",
     ],
     samples: {
       E2:"E2.mp3",F2:"F2.mp3","F#2":"Fs2.mp3",G2:"G2.mp3","G#2":"Gs2.mp3",A2:"A2.mp3","A#2":"As2.mp3",B2:"B2.mp3",
