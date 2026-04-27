@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ResponsiveBassNeck } from "../components/ResponsiveBassNeck";
 import { StatCard } from "../components/StatCard";
+import { InstrumentoIndicator } from "../components/InstrumentoIndicator";
 import { notaPara, TC } from "../constants/music";
 
 export default function ModoBatalla({ audio, instrumento }) {
@@ -185,6 +186,7 @@ export default function ModoBatalla({ audio, instrumento }) {
 
   return (
     <div>
+      <InstrumentoIndicator instrumento={instrumento} />
       <div style={{ display: "flex", gap: 8, marginBottom: 12, alignItems: "stretch", flexWrap: "wrap" }}>
         <div style={{ flex: 1, background: "#1e293b", border: "1.5px solid #334155", borderRadius: 12, padding: "8px 10px", textAlign: "center", minWidth: 70 }}>
           <div style={{ fontSize: "clamp(9px, 1.5vw, 10px)", color: "#64748b", marginBottom: 2 }}>Vidas</div>

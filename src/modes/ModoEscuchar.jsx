@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import * as Tone from "tone";
 import { ResponsiveBassNeck } from "../components/ResponsiveBassNeck";
 import { StatCard } from "../components/StatCard";
+import { InstrumentoIndicator } from "../components/InstrumentoIndicator";
 import { notaPara, SOL } from "../constants/music";
 
 export default function ModoEscuchar({ audio, instrumento }) {
@@ -92,6 +93,7 @@ export default function ModoEscuchar({ audio, instrumento }) {
 
   return (
     <div>
+      <InstrumentoIndicator instrumento={instrumento} />
       <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
         {[
           { l: "✅ Correctas", v: score, c: "#22c55e" },

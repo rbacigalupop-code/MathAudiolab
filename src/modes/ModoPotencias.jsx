@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import * as Tone from "tone";
 import { StatCard } from "../components/StatCard";
+import { InstrumentoIndicator } from "../components/InstrumentoIndicator";
 import { useSupabaseAuth } from "../hooks/useSupabaseAuth";
 import { useWeakPoints } from "../hooks/useWeakPoints";
 import { useSyncToDatabase } from "../hooks/useSyncToDatabase";
@@ -134,6 +135,7 @@ export default function ModoPotencias({ store, setStore, audio, instrumento, set
 
   return (
     <div>
+      <InstrumentoIndicator instrumento={instrumento} />
       <div style={{ display: "flex", gap: 5, marginBottom: 10, overflowX: "auto", paddingBottom: 2 }}>
         {POTENCIA_NIVELES.map((n) => (
           <button

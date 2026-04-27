@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import * as Tone from "tone";
 import { StatCard } from "../components/StatCard";
+import { InstrumentoIndicator } from "../components/InstrumentoIndicator";
 import { DivisionTimeline } from "../components/DivisionTimeline";
 import { useSupabaseAuth } from "../hooks/useSupabaseAuth";
 import { useWeakPoints } from "../hooks/useWeakPoints";
@@ -148,6 +149,7 @@ export default function ModoDivision({ store, setStore, audio, instrumento }) {
 
   return (
     <div>
+      <InstrumentoIndicator instrumento={instrumento} />
       <div style={{ display: "flex", gap: 5, marginBottom: 10, overflowX: "auto", paddingBottom: 2 }}>
         {NIVELES_DIVISION.map((n) => (
           <button
