@@ -3,10 +3,11 @@ import { AnimatePresence, motion } from "framer-motion";
 import * as Tone from "tone";
 
 import { useAudioManager, INSTRUMENTOS } from "./hooks/useAudioManager";
-import { useLocalStorage } from "./hooks/useLocalStorage";
+import { useSupabaseAuth } from "./hooks/useSupabaseAuth";
+import { useProfileManager } from "./hooks/useProfileManager";
 import { ResponsiveCanvas } from "./components/ResponsiveCanvas";
 import SplashScreen from "./components/SplashScreen";
-import PanelProgreso from "./components/PanelProgreso";
+import ProfileSelector from "./components/ProfileSelector";
 import LessonReader from "./components/LessonReader";
 import ModoTabla from "./modes/ModoTabla";
 import ModoEjercicios from "./modes/ModoEjercicios";
@@ -33,7 +34,7 @@ const MODOS = [
   { id: "batalla", label: "⚔️ Batalla" },
 ];
 
-function MainApp({ store, setStore }) {
+function MainApp({ activeProfile, updateProfileStats, profiles, createProfile, selectProfile, deleteProfile }) {
   const [modo, setModo] = useState("ejercicios");
   const [instrumento, setInstrumento] = useState("piano");
   const [reloading, setReloading] = useState(false);
@@ -44,10 +45,40 @@ function MainApp({ store, setStore }) {
 
   if (showDiagnostics) return <SamplesTest onBack={() => setShowDiagnostics(false)} />;
 
+  if (!activeProfile) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          background: "#0f172a",
+          fontFamily: "sans-serif",
+          padding: "40px 20px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div style={{ maxWidth: 620, textAlign: "center" }}>
+          <div style={{ fontSize: "clamp(18px, 5vw, 24px)", fontWeight: 900, color: "#f97316", marginBottom: 20 }}>
+            🎸 MathAudio Lab
+          </div>
+          <div style={{ fontSize: "clamp(12px, 2vw, 14px)", color: "#94a3b8", marginBottom: 20 }}>
+            Cargando perfiles...
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const store = activeProfile.stats;
+  const setStore = (fn) => {
+    const newStats = typeof fn === "function" ? fn(store) : fn;
+    updateProfileStats(activeProfile.id, newStats);
+  };
+
   const cambiarInstrumento = async (id) => {
     if (id === instrumento || reloading) return;
     setReloading(true);
-    audio.resetSampler();
     setInstrumento(id);
     try {
       await audio.getSamplerSync(id);
@@ -69,6 +100,16 @@ function MainApp({ store, setStore }) {
       }}
     >
       <div style={{ maxWidth: 620, margin: "0 auto" }}>
+        {/* Profile Selector */}
+        <ProfileSelector
+          profiles={profiles}
+          activeProfile={activeProfile}
+          loading={false}
+          onSelectProfile={selectProfile}
+          onCreateProfile={createProfile}
+          onDeleteProfile={deleteProfile}
+        />
+
         {/* Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10, gap: 10 }}>
           <div style={{ minWidth: 0 }}>
@@ -123,8 +164,8 @@ function MainApp({ store, setStore }) {
                 minWidth: 40,
                 transition: "all .2s",
               }}
-              onMouseEnter={(e) => e.target.style.borderColor = headerColor}
-              onMouseLeave={(e) => e.target.style.borderColor = "#334155"}
+              onMouseEnter={(e) => (e.target.style.borderColor = headerColor)}
+              onMouseLeave={(e) => (e.target.style.borderColor = "#334155")}
             >
               🔧
             </button>
@@ -241,8 +282,40 @@ function MainApp({ store, setStore }) {
 
 export default function App() {
   const [ready, setReady] = useState(false);
-  const { store, updateStore } = useLocalStorage();
+  const { userId, isReady } = useSupabaseAuth();
+  const { profiles, activeProfile, loading, createProfile, selectProfile, deleteProfile, updateProfileStats } = useProfileManager(userId);
 
   if (!ready) return <SplashScreen onReady={() => setReady(true)} />;
-  return <MainApp store={store} setStore={updateStore} />;
+
+  if (!isReady || loading) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          background: "#0f172a",
+          fontFamily: "sans-serif",
+          padding: "40px 20px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div style={{ textAlign: "center" }}>
+          <div style={{ fontSize: "24px", marginBottom: 20 }}>⏳</div>
+          <div style={{ fontSize: "14px", color: "#94a3b8" }}>Inicializando MathAudio Lab...</div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <MainApp
+      activeProfile={activeProfile}
+      updateProfileStats={updateProfileStats}
+      profiles={profiles}
+      createProfile={createProfile}
+      selectProfile={selectProfile}
+      deleteProfile={deleteProfile}
+    />
+  );
 }
