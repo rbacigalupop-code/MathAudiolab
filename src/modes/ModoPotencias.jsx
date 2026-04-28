@@ -267,7 +267,7 @@ export default function ModoPotencias({ store, setStore, audio, instrumento, set
             {estado === "incorrecto" && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                 <div style={{ color: "#ef4444", fontWeight: 600, fontSize: "clamp(11px, 2vw, 13px)", marginBottom: 8 }}>
-                  Recuerda: {exp === 0 ? "cualquier número elevado a 0 es 1" : `${Array.from({ length: exp }, () => base).join(" × ")}`}
+                  🎵 Escucha nuevamente: {exp === 0 ? "cualquier número elevado a 0 es 1" : `${base}${exp > 1 ? `¹ × ` : ""} = ${Array.from({ length: Math.min(exp, 3) }, () => base).join(" × ")}${exp > 3 ? "..." : ""}`}
                 </div>
               </motion.div>
             )}

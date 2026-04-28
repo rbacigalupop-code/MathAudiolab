@@ -315,8 +315,14 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
                 color: "#1f2937",
                 background: "#fff",
                 minHeight: 44,
+                boxShadow: estado === "esperando" ? `0 0 0 3px ${c}33` : "none",
+                transition: "all .2s",
               }}
             />
+          </div>
+
+          <div style={{ fontSize: "clamp(9px, 1.5vw, 10px)", color: "#64748b", marginTop: 6, minHeight: 16 }}>
+            {estado === "esperando" ? "Escribe tu respuesta y presiona Enter ↵" : estado === "correcto" ? "¡Lo hiciste! Presiona Enter para el siguiente" : ""}
           </div>
 
           <AnimatePresence>
@@ -333,7 +339,7 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
             {estado === "incorrecto" && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                 <div style={{ color: "#ef4444", fontWeight: 600, fontSize: "clamp(11px, 2vw, 13px)", marginBottom: 8 }}>
-                  Intenta de nuevo{cfg.grupos ? ` — ${tabla} grupos de ${factor}` : ""}
+                  📊 Recalibrando ritmo{cfg.grupos ? ` — escucha: ${tabla} grupos × ${factor} cada uno` : " — escucha y cuenta con cuidado"}
                 </div>
               </motion.div>
             )}
