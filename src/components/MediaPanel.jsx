@@ -4,33 +4,33 @@ import { motion, AnimatePresence } from "framer-motion";
 const MEDIA_CONTENT = {
   multiplication: {
     title: "Multiplicación",
-    youtube: "dQw4w9WgXcQ", // Placeholder - would be actual educational video
+    youtube: "3QPpyuNycQI",
     videos: [
-      { title: "¿Qué es multiplicación?", id: "dQw4w9WgXcQ" },
-      { title: "Tablas de multiplicar", id: "dQw4w9WgXcQ" },
+      { title: "MULTIPLICACIÓN y DIVISIÓN - Matemáticas para niños", id: "3QPpyuNycQI" },
+      { title: "Aprendiendo a multiplicar - Happy Learning", id: "YFtEaVw5k1A" },
     ],
-    spotify: "https://open.spotify.com/playlist/37i9dQZF1DZ52esnJ5UmQN",
-    spotifyEmbed: "https://open.spotify.com/embed/playlist/37i9dQZF1DZ52esnJ5UmQN",
+    spotify: "https://open.spotify.com/playlist/6bx2DXYetqJT0mf748kEUe",
+    spotifyEmbed: "https://open.spotify.com/embed/playlist/6bx2DXYetqJT0mf748kEUe?utm_source=generator",
   },
   division: {
     title: "División",
-    youtube: "dQw4w9WgXcQ",
+    youtube: "zF4GYIbSMzg",
     videos: [
-      { title: "Concepto de división", id: "dQw4w9WgXcQ" },
-      { title: "Dividendo, divisor y cociente", id: "dQw4w9WgXcQ" },
+      { title: "La división - Aprende con los monos", id: "zF4GYIbSMzg" },
+      { title: "Aprendiendo a dividir - Happy Learning", id: "iA0fP4tL67s" },
     ],
-    spotify: "https://open.spotify.com/playlist/37i9dQZF1DZ52esnJ5UmQN",
-    spotifyEmbed: "https://open.spotify.com/embed/playlist/37i9dQZF1DZ52esnJ5UmQN",
+    spotify: "https://open.spotify.com/playlist/2itdA3rmYpuqo1bcJR24x7",
+    spotifyEmbed: "https://open.spotify.com/embed/playlist/2itdA3rmYpuqo1bcJR24x7?utm_source=generator",
   },
   powers: {
     title: "Potencias",
-    youtube: "dQw4w9WgXcQ",
+    youtube: "loEjcsaXh2Y",
     videos: [
-      { title: "¿Qué es una potencia?", id: "dQw4w9WgXcQ" },
-      { title: "Exponentes y bases", id: "dQw4w9WgXcQ" },
+      { title: "Las potencias para niños - Matemáticas", id: "loEjcsaXh2Y" },
+      { title: "POTENCIAS Super fácil - Para principiantes", id: "-K0ZSm9lPeY" },
     ],
-    spotify: "https://open.spotify.com/playlist/37i9dQZF1DZ52esnJ5UmQN",
-    spotifyEmbed: "https://open.spotify.com/embed/playlist/37i9dQZF1DZ52esnJ5UmQN",
+    spotify: "https://open.spotify.com/playlist/2BhCL66fcE7KgwnNhmMrQs",
+    spotifyEmbed: "https://open.spotify.com/embed/playlist/2BhCL66fcE7KgwnNhmMrQs?utm_source=generator",
   },
 };
 
@@ -220,7 +220,7 @@ export function MediaPanel({ mode = "ejercicios" }) {
 
                   <div style={{ marginBottom: 12 }}>
                     <iframe
-                      src={`https://open.spotify.com/embed/playlist/37i9dQZF1DZ52esnJ5UmQN?utm_source=generator`}
+                      src={content.spotifyEmbed}
                       width="100%"
                       height="380"
                       frameBorder="0"
