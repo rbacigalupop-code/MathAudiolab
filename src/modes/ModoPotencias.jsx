@@ -79,7 +79,7 @@ export default function ModoPotencias({ store, setStore, audio, instrumento, set
 
   useEffect(() => {
     newQ();
-  }, [nivel]);
+  }, [nivelSeleccionado, newQ]);
 
   useEffect(() => {
     if (estado === "esperando") inputRef.current?.focus();
