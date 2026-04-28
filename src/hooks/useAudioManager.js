@@ -1,4 +1,4 @@
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useEffect } from "react";
 import * as Tone from "tone";
 
 let samplerInstances = {};
@@ -183,8 +183,21 @@ export function useAudioManager() {
   const timeoutsRef = useRef([]);
 
   const cleanup = useCallback(() => {
+    // Clear all scheduled timeouts
     timeoutsRef.current.forEach(clearTimeout);
     timeoutsRef.current = [];
+
+    // Clean up Tone.js scheduled events
+    try {
+      // Cancel any scheduled note triggers in Tone.Transport
+      Tone.Transport.cancel();
+    } catch (e) {
+      console.warn("[Cleanup] Failed to cancel Tone.Transport:", e);
+    }
+
+    // Note: We deliberately do NOT dispose of samplerInstances here.
+    // Samplers are expensive to load and cached for reuse across mode switches.
+    // If memory becomes an issue, implement selective disposal on profile/mode change.
   }, []);
 
   const scheduleTimeout = useCallback((fn, delay) => {
@@ -320,6 +333,16 @@ export function useAudioManager() {
   const getSyncedBPM = useCallback(() => {
     return Tone.Transport.bpm.value;
   }, []);
+
+  /**
+   * Cleanup effect: Called when component unmounts
+   * Ensures all scheduled events and timeouts are cleared
+   */
+  useEffect(() => {
+    return () => {
+      cleanup();
+    };
+  }, [cleanup]);
 
   return {
     playBass, playVictory, playLevelUp, playError, playLoseLife, playDivisionSuccess, setRockMode,
