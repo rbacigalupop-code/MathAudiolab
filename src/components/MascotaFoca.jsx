@@ -9,11 +9,11 @@ import {
 } from "../constants/mascota";
 
 /**
- * Componente MascotaFoca - Foca kawaii interactiva
+ * Componente MascotaFoca - Foca kawaii interactiva mejorada
  * - Aparece en esquina inferior derecha (fixed)
- * - SVG escalable que es responsive
+ * - SVG escalable con diseño más detallado y lindo
  * - Click muestra tooltip con instrucción del modo
- * - Realiza punch animation al acertar (triggerPunch)
+ * - Animación de punch: se golpea el costado al acertar
  * - Auto-dimite tooltip después de 4s
  */
 const MascotaFoca = React.memo(() => {
@@ -21,6 +21,7 @@ const MascotaFoca = React.memo(() => {
     useMascotaContext();
 
   const [isHappy, setIsHappy] = useState(false);
+  const [isPunching, setIsPunching] = useState(false);
   const [isMobileDevice, setIsMobileDevice] = useState(false);
   const tooltipTimeoutRef = useRef(null);
 
@@ -34,12 +35,17 @@ const MascotaFoca = React.memo(() => {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // Trigger punch: happy expression durante 1s después del punch
+  // Trigger punch: happy expression durante 1.2s después del punch
   useEffect(() => {
     if (punchTrigger > 0) {
       setIsHappy(true);
-      const happyTimeout = setTimeout(() => setIsHappy(false), 1000);
-      return () => clearTimeout(happyTimeout);
+      setIsPunching(true);
+      const happyTimeout = setTimeout(() => setIsHappy(false), 1200);
+      const punchTimeout = setTimeout(() => setIsPunching(false), 500);
+      return () => {
+        clearTimeout(happyTimeout);
+        clearTimeout(punchTimeout);
+      };
     }
   }, [punchTrigger]);
 
@@ -82,212 +88,267 @@ const MascotaFoca = React.memo(() => {
       }}
       transition={{ type: "spring", stiffness: 100, damping: 15 }}
     >
-      {/* SVG de la foca */}
+      {/* SVG de la foca - Diseño mejorado y más cute */}
       <motion.svg
         viewBox={`0 0 ${MASCOTA_SIZE.VIEWPORT_WIDTH} ${MASCOTA_SIZE.VIEWPORT_HEIGHT}`}
         width={MASCOTA_SIZE.BODY_WIDTH}
         height={MASCOTA_SIZE.BODY_HEIGHT}
         onClick={handleClick}
         animate={
-          punchTrigger > 0
+          isPunching
             ? {
-                rotateZ: [0, 3, -3, 0],
-                scaleX: [1, 1.05, 0.98, 1],
+                x: [0, 15, 0],
+                rotateZ: [0, 2, -2, 0],
               }
-            : { rotateZ: 0, scaleX: 1 }
+            : { x: 0, rotateZ: 0 }
         }
         transition={
-          punchTrigger > 0
+          isPunching
             ? {
                 duration: MASCOTA_ANIMATION.SHAKE_DURATION / 1000,
                 ease: "easeInOut",
-                times: [0, 0.33, 0.66, 1],
               }
             : { duration: 0.3 }
         }
         style={{ transformOrigin: "center center" }}
       >
-        {/* Cuerpo principal - Óvalo grande para look chubby */}
+        {/* Definir gradientes */}
+        <defs>
+          <linearGradient id="bodyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#E8F4F8" />
+            <stop offset="50%" stopColor="#FFF8DC" />
+            <stop offset="100%" stopColor="#B0D4E3" />
+          </linearGradient>
+          <radialGradient id="cheekGradient" cx="35%" cy="35%">
+            <stop offset="0%" stopColor="#FFD4E5" />
+            <stop offset="100%" stopColor="#FFB6C1" />
+          </radialGradient>
+        </defs>
+
+        {/* Cuerpo principal - Óvalo redondeado con gradiente */}
         <ellipse
           cx="100"
-          cy="140"
-          rx="55"
-          ry="70"
-          fill={MASCOTA_COLORS.BODY}
-          stroke={MASCOTA_COLORS.OUTLINE}
-          strokeWidth="2.5"
+          cy="150"
+          rx="58"
+          ry="75"
+          fill="url(#bodyGradient)"
+          stroke="#5D4037"
+          strokeWidth="3"
         />
 
-        {/* Cabeza - Círculo encima del cuerpo */}
+        {/* Barriguita - Mancha clara */}
+        <ellipse
+          cx="100"
+          cy="165"
+          rx="38"
+          ry="55"
+          fill="#FFFACD"
+          opacity="0.6"
+        />
+
+        {/* Cabeza - Círculo grande */}
         <circle
           cx="100"
           cy="70"
-          r="48"
-          fill={MASCOTA_COLORS.BODY}
-          stroke={MASCOTA_COLORS.OUTLINE}
+          r="52"
+          fill="url(#bodyGradient)"
+          stroke="#5D4037"
+          strokeWidth="3"
+        />
+
+        {/* Aleta izquierda - Grande y redondeada */}
+        <ellipse
+          cx="45"
+          cy="140"
+          rx="22"
+          ry="38"
+          fill="url(#bodyGradient)"
+          stroke="#5D4037"
           strokeWidth="2.5"
+          transform="rotate(-25 45 140)"
         />
 
-        {/* Aleta izquierda */}
+        {/* Aleta derecha - Grande y redondeada */}
         <ellipse
-          cx="55"
-          cy="135"
-          rx="18"
-          ry="28"
-          fill={MASCOTA_COLORS.BODY}
-          stroke={MASCOTA_COLORS.OUTLINE}
-          strokeWidth="2"
+          cx="155"
+          cy="140"
+          rx="22"
+          ry="38"
+          fill="url(#bodyGradient)"
+          stroke="#5D4037"
+          strokeWidth="2.5"
+          transform="rotate(25 155 140)"
         />
 
-        {/* Aleta derecha */}
-        <ellipse
-          cx="145"
-          cy="135"
-          rx="18"
-          ry="28"
-          fill={MASCOTA_COLORS.BODY}
-          stroke={MASCOTA_COLORS.OUTLINE}
-          strokeWidth="2"
-        />
-
-        {/* Mejillas - Para dar más cuteness */}
+        {/* Mejilla izquierda - Grande y rosada */}
         <circle
-          cx="30"
+          cx="20"
           cy="75"
-          r="12"
-          fill={MASCOTA_COLORS.CHEEK}
-          opacity="0.6"
-        />
-        <circle
-          cx="170"
-          cy="75"
-          r="12"
-          fill={MASCOTA_COLORS.CHEEK}
-          opacity="0.6"
+          r="16"
+          fill="url(#cheekGradient)"
+          opacity="0.75"
         />
 
-        {/* Ojo izquierdo */}
+        {/* Mejilla derecha - Grande y rosada */}
         <circle
-          cx="75"
+          cx="180"
+          cy="75"
+          r="16"
+          fill="url(#cheekGradient)"
+          opacity="0.75"
+        />
+
+        {/* Ojo izquierdo - Grande */}
+        <circle
+          cx="70"
           cy="55"
-          r={MASCOTA_SIZE.EYE_RADIUS}
+          r={MASCOTA_SIZE.EYE_RADIUS + 2}
           fill={MASCOTA_COLORS.EYE}
         />
         {/* Brillo en ojo izquierdo */}
-        <circle cx="77" cy="52" r="2.5" fill="white" opacity="0.8" />
+        <circle cx="74" cy="50" r="3.5" fill="white" opacity="0.9" />
 
-        {/* Ojo derecho */}
+        {/* Ojo derecho - Grande */}
         <circle
-          cx="125"
+          cx="130"
           cy="55"
-          r={MASCOTA_SIZE.EYE_RADIUS}
+          r={MASCOTA_SIZE.EYE_RADIUS + 2}
           fill={MASCOTA_COLORS.EYE}
         />
         {/* Brillo en ojo derecho */}
-        <circle cx="127" cy="52" r="2.5" fill="white" opacity="0.8" />
+        <circle cx="134" cy="50" r="3.5" fill="white" opacity="0.9" />
 
         {/* Párpados - Cambian con expresión happy */}
         {isHappy ? (
           <>
             {/* Párpado izquierdo feliz (semicírculo) */}
             <path
-              d="M 67 55 Q 75 60 83 55"
+              d="M 62 55 Q 70 62 78 55"
               stroke={MASCOTA_COLORS.OUTLINE}
-              strokeWidth="2"
+              strokeWidth="2.5"
               fill="none"
               strokeLinecap="round"
             />
             {/* Párpado derecho feliz */}
             <path
-              d="M 117 55 Q 125 60 133 55"
+              d="M 122 55 Q 130 62 138 55"
               stroke={MASCOTA_COLORS.OUTLINE}
-              strokeWidth="2"
+              strokeWidth="2.5"
               fill="none"
               strokeLinecap="round"
             />
           </>
         ) : null}
 
-        {/* Nariz */}
-        <circle cx="100" cy="80" r="4" fill={MASCOTA_COLORS.OUTLINE} />
+        {/* Nariz - Triangular cute */}
+        <polygon
+          points="100,80 95,88 105,88"
+          fill={MASCOTA_COLORS.OUTLINE}
+        />
 
         {/* Boca - Cambia con expresión happy */}
         {isHappy ? (
-          // Sonrisa feliz (arco)
+          // Sonrisa feliz grande (arco)
           <path
-            d="M 85 95 Q 100 108 115 95"
+            d="M 80 92 Q 100 108 120 92"
             stroke={MASCOTA_COLORS.MOUTH}
-            strokeWidth="2.5"
+            strokeWidth="3"
             fill="none"
             strokeLinecap="round"
           />
         ) : (
-          // Boca neutral (línea)
+          // Boca neutral (línea pequeña)
           <line
             x1="85"
-            y1="95"
+            y1="92"
             x2="115"
-            y2="95"
+            y2="92"
             stroke={MASCOTA_COLORS.MOUTH}
-            strokeWidth="2"
+            strokeWidth="2.5"
             strokeLinecap="round"
           />
         )}
 
-        {/* Bigotes */}
+        {/* Bigotes izquierdo */}
         <line
           x1="50"
-          y1="85"
-          x2="30"
-          y2="80"
+          y1="78"
+          x2="20"
+          y2="72"
           stroke={MASCOTA_COLORS.OUTLINE}
-          strokeWidth="1.5"
+          strokeWidth="2"
           strokeLinecap="round"
         />
         <line
           x1="50"
-          y1="90"
-          x2="28"
+          y1="85"
+          x2="18"
           y2="95"
           stroke={MASCOTA_COLORS.OUTLINE}
-          strokeWidth="1.5"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+        <line
+          x1="50"
+          y1="92"
+          x2="20"
+          y2="105"
+          stroke={MASCOTA_COLORS.OUTLINE}
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+
+        {/* Bigotes derecho */}
+        <line
+          x1="150"
+          y1="78"
+          x2="180"
+          y2="72"
+          stroke={MASCOTA_COLORS.OUTLINE}
+          strokeWidth="2"
           strokeLinecap="round"
         />
         <line
           x1="150"
           y1="85"
-          x2="170"
-          y2="80"
+          x2="182"
+          y2="95"
           stroke={MASCOTA_COLORS.OUTLINE}
-          strokeWidth="1.5"
+          strokeWidth="2"
           strokeLinecap="round"
         />
         <line
           x1="150"
-          y1="90"
-          x2="172"
-          y2="95"
+          y1="92"
+          x2="180"
+          y2="105"
           stroke={MASCOTA_COLORS.OUTLINE}
-          strokeWidth="1.5"
+          strokeWidth="2"
           strokeLinecap="round"
         />
+
+        {/* Manchitas decorativas en el cuerpo */}
+        <circle cx="75" cy="130" r="6" fill="#B0D4E3" opacity="0.5" />
+        <circle cx="125" cy="145" r="5" fill="#B0D4E3" opacity="0.5" />
+        <circle cx="90" cy="200" r="4" fill="#B0D4E3" opacity="0.4" />
+        <circle cx="110" cy="210" r="4.5" fill="#B0D4E3" opacity="0.4" />
       </motion.svg>
 
-      {/* Pulse animation durante punch */}
-      {punchTrigger > 0 && (
+      {/* Pulse/impacto animation durante punch */}
+      {isPunching && (
         <motion.div
+          initial={{ scale: 1, opacity: 1 }}
+          animate={{ scale: 1.3, opacity: 0 }}
+          transition={{ duration: 0.4 }}
           style={{
             position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-          }}
-          animate={{ scaleY: [1, 1.15, 1] }}
-          transition={{
-            duration: MASCOTA_ANIMATION.PULSE_DURATION / 1000,
-            ease: "easeInOut",
-            delay: MASCOTA_ANIMATION.SHAKE_DURATION / 1000,
+            top: "50%",
+            right: "-20px",
+            width: "30px",
+            height: "30px",
+            border: "2px solid #FFD700",
+            borderRadius: "50%",
+            pointerEvents: "none",
           }}
         />
       )}
@@ -306,12 +367,12 @@ const MascotaFoca = React.memo(() => {
             whiteSpace: "nowrap",
             backgroundColor: "#1e293b",
             color: "#f1f5f9",
-            padding: "8px 12px",
-            borderRadius: 8,
+            padding: "10px 14px",
+            borderRadius: 10,
             fontSize: "clamp(11px, 2vw, 13px)",
             fontWeight: 600,
             border: "1.5px solid #475569",
-            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.4)",
+            boxShadow: "0 4px 16px rgba(0, 0, 0, 0.5)",
             zIndex: 50,
           }}
         >
@@ -320,13 +381,13 @@ const MascotaFoca = React.memo(() => {
           <div
             style={{
               position: "absolute",
-              bottom: "-8px",
-              right: "20px",
+              bottom: "-10px",
+              right: "25px",
               width: 0,
               height: 0,
-              borderLeft: "8px solid transparent",
-              borderRight: "8px solid transparent",
-              borderTop: "8px solid #1e293b",
+              borderLeft: "10px solid transparent",
+              borderRight: "10px solid transparent",
+              borderTop: "10px solid #1e293b",
             }}
           />
         </motion.div>
