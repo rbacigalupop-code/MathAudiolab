@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { StatCard } from "../components/StatCard";
 import { BeatSlicerVisualizer } from "../components/BeatSlicerVisualizer";

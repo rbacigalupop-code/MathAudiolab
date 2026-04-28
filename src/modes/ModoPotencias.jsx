@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import * as Tone from "tone";
 import { StatCard } from "../components/StatCard";
@@ -40,7 +40,9 @@ export default function ModoPotencias({ store, setStore, audio, instrumento, set
   const [intentos, setIntentos] = useState(0);
   const inputRef = useRef(null);
   const timeoutsRef = useRef([]);
-  const cfg = POTENCIA_NIVELES[nivelSeleccionado - 1];
+
+  // HOTFIX: Memoize cfg to prevent useEffect re-triggers
+  const cfg = useMemo(() => POTENCIA_NIVELES[nivelSeleccionado - 1], [nivelSeleccionado]);
 
   // Hook para muestreo ponderado (70% weak points, 30% nuevo)
   const { getWeightedProblem, recordAttempt } = useWeightedSampling(store);

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import * as Tone from "tone";
 import { DynamicFretboard } from "../components/DynamicFretboard";
@@ -15,7 +15,9 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
 
   // Nivel seleccionable (permite elegir cualquier nivel)
   const [nivelSeleccionado, setNivelSeleccionado] = useState(store.nivel);
-  const cfg = NIVELES[nivelSeleccionado - 1];
+
+  // HOTFIX: Memoize cfg to prevent constant state recalculations
+  const cfg = useMemo(() => NIVELES[nivelSeleccionado - 1], [nivelSeleccionado]);
   const [tabla, setTabla] = useState(cfg.tablas[0]);
   const [factor, setFactor] = useState(null);
   const [input, setInput] = useState("");
