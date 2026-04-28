@@ -3,9 +3,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import * as Tone from "tone";
 import { StatCard } from "../components/StatCard";
 import { InstrumentoIndicator } from "../components/InstrumentoIndicator";
-import { useSupabaseAuth } from "../hooks/useSupabaseAuth";
-import { useWeakPoints } from "../hooks/useWeakPoints";
-import { useSyncToDatabase } from "../hooks/useSyncToDatabase";
 
 const POTENCIA_NIVELES = [
   { id: 1, label: "Nivel 1", desc: "Exponente 0–3", maxExp: 3 },
@@ -29,7 +26,7 @@ async function playEscaleraOctavas(base, exponente, audio, instrumento) {
 }
 
 export default function ModoPotencias({ store, setStore, audio, instrumento, setRockActive }) {
-  const [nivel, setNivel] = useState(1);
+  const [nivel, setNivel] = useState(store.nivel || 1);
   const [base, setBase] = useState(2);
   const [exp, setExp] = useState(null);
   const [input, setInput] = useState("");
@@ -37,14 +34,9 @@ export default function ModoPotencias({ store, setStore, audio, instrumento, set
   const [score, setScore] = useState(0);
   const [streak, setStreak] = useState(0);
   const [intentos, setIntentos] = useState(0);
-  const [rockActive, setRockActiveLocal] = useState(false);
   const inputRef = useRef(null);
   const timeoutsRef = useRef([]);
   const cfg = POTENCIA_NIVELES[nivel - 1];
-
-  const { userId, isReady } = useSupabaseAuth();
-  const { recordAttempt } = useWeakPoints(userId);
-  useSyncToDatabase(store, userId);
 
   useEffect(() => {
     return () => timeoutsRef.current.forEach(clearTimeout);
@@ -67,7 +59,7 @@ export default function ModoPotencias({ store, setStore, audio, instrumento, set
 
   const correcto = base !== null && exp !== null ? Math.pow(base, exp) : 0;
   const baseColor = base === 2 ? "#f97316" : base === 3 ? "#22c55e" : "#a855f7";
-  const rockBorder = rockActive ? "#dc2626" : baseColor;
+  const rockBorder = (store.unlocked_effects?.includes("distortion") && store.rachaGlobal >= 5) ? "#dc2626" : baseColor;
 
   const playPista = useCallback(async () => {
     if (exp === null) return;
@@ -81,21 +73,11 @@ export default function ModoPotencias({ store, setStore, audio, instrumento, set
 
     setIntentos((i) => i + 1);
 
-    // Record in weak_points
-    if (userId && isReady) {
-      recordAttempt("powers", base, exp, isCorrect);
-    }
-
     if (isCorrect) {
       setEstado("correcto");
       setScore((s) => s + 1);
       const ns = streak + 1;
       setStreak(ns);
-      if (ns >= 5 && !rockActive) {
-        setRockActiveLocal(true);
-        setRockActive(true);
-        audio.setRockMode(true);
-      }
       await playEscaleraOctavas(base, exp, audio, instrumento);
       setStore((prev) => {
         const next = {
@@ -105,8 +87,10 @@ export default function ModoPotencias({ store, setStore, audio, instrumento, set
         };
 
         // Effects unlock
-        if (ns >= 5 && !next.unlocked_effects?.includes("distortion")) {
+        if (streak + 1 >= 5 && !next.unlocked_effects?.includes("distortion")) {
           next.unlocked_effects = [...(next.unlocked_effects || []), "distortion"];
+          if (setRockActive) setRockActive(true);
+          audio.setRockMode(true);
         }
         if (next.mejorRacha >= 30 && !next.unlocked_effects?.includes("reverb")) {
           next.unlocked_effects = [...(next.unlocked_effects || []), "reverb"];
@@ -120,14 +104,10 @@ export default function ModoPotencias({ store, setStore, audio, instrumento, set
     } else {
       setEstado("incorrecto");
       setStreak(0);
-      if (rockActive) {
-        setRockActiveLocal(false);
-        setRockActive(false);
-        audio.setRockMode(false);
-      }
+      setStore((prev) => ({ ...prev, rachaGlobal: 0 }));
       await audio.playError(instrumento);
     }
-  }, [input, exp, base, correcto, streak, audio, instrumento, rockActive, setStore, userId, isReady, recordAttempt]);
+  }, [input, exp, base, correcto, streak, audio, instrumento, setStore, setRockActive]);
 
   const handleKey = (e) => {
     if (e.key === "Enter") estado === "correcto" ? newQ() : check();
@@ -166,7 +146,7 @@ export default function ModoPotencias({ store, setStore, audio, instrumento, set
         {[
           { l: "✅ Correctas", v: score, c: "#22c55e" },
           { l: "📝 Intentos", v: intentos, c: "#64748b" },
-          { l: rockActive ? "🤘 ROCK" : "🔥 Racha", v: streak, c: rockActive ? "#dc2626" : "#f97316" },
+          { l: (store.unlocked_effects?.includes("distortion") && streak >= 5) ? "🤘 ROCK" : "🔥 Racha", v: streak, c: (store.unlocked_effects?.includes("distortion") && streak >= 5) ? "#dc2626" : baseColor },
         ].map(({ l, v, c }) => (
           <StatCard key={l} label={l} value={v} color={c} variant={rockActive ? "dark" : "default"} />
         ))}

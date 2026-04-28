@@ -1,12 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import * as Tone from "tone";
 import { StatCard } from "../components/StatCard";
-import { InstrumentoIndicator } from "../components/InstrumentoIndicator";
 import { DivisionTimeline } from "../components/DivisionTimeline";
-import { useSupabaseAuth } from "../hooks/useSupabaseAuth";
-import { useWeakPoints } from "../hooks/useWeakPoints";
-import { useSyncToDatabase } from "../hooks/useSyncToDatabase";
 
 const ACIERTOS_PARA_SUBIR = 5;
 const NIVELES_DIVISION = [
@@ -28,8 +23,8 @@ function generateDivisionProblem(nivel) {
   return { dividendo, divisor, respuestaEsperada: resultado };
 }
 
-export default function ModoDivision({ store, setStore, audio, instrumento }) {
-  const [nivel, setNivel] = useState(store.nivel || 1);
+export default function ModoDivision({ store, setStore, audio, instrumento, setRockActive }) {
+  const nivel = store.nivel;
   const [dividendo, setDividendo] = useState(null);
   const [divisor, setDivisor] = useState(null);
   const [respuestaEsperada, setRespuestaEsperada] = useState(null);
@@ -42,10 +37,6 @@ export default function ModoDivision({ store, setStore, audio, instrumento }) {
   const inputRef = useRef(null);
   const timeoutsRef = useRef([]);
   const sessionRef = useRef({ correctas: 0, intentos: 0 });
-
-  const { userId, isReady } = useSupabaseAuth();
-  const { recordAttempt } = useWeakPoints(userId);
-  useSyncToDatabase(store, userId);
 
   const c = "#3b82f6"; // Azul para División
 
@@ -90,11 +81,6 @@ export default function ModoDivision({ store, setStore, audio, instrumento }) {
     setIntentos((i) => i + 1);
     sessionRef.current.intentos++;
 
-    // Record in weak_points
-    if (userId && isReady) {
-      recordAttempt("division", dividendo, divisor, isCorrect);
-    }
-
     if (isCorrect) {
       setEstado("correcto");
       setScore((s) => s + 1);
@@ -121,11 +107,16 @@ export default function ModoDivision({ store, setStore, audio, instrumento }) {
         if (next.nivel < 5 && ns >= ACIERTOS_PARA_SUBIR) {
           next.nivel = Math.min(5, next.nivel + 1);
           next.rachaGlobal = 0;
-          setNivel(next.nivel);
           setLevelUpMsg(true);
           const idLvl = setTimeout(() => setLevelUpMsg(false), 3500);
           timeoutsRef.current.push(idLvl);
           audio.playLevelUp(instrumento);
+        }
+
+        // Effects unlock
+        if (ns >= 5 && !next.unlocked_effects?.includes("distortion")) {
+          next.unlocked_effects = [...(next.unlocked_effects || []), "distortion"];
+          if (setRockActive) setRockActive(true);
         }
         return next;
       });
@@ -135,7 +126,7 @@ export default function ModoDivision({ store, setStore, audio, instrumento }) {
       setStore((prev) => ({ ...prev, rachaGlobal: 0 }));
       await audio.playError(instrumento);
     }
-  }, [input, divisor, respuestaEsperada, dividendo, streak, audio, instrumento, setStore, userId, isReady, recordAttempt]);
+  }, [input, divisor, respuestaEsperada, dividendo, streak, audio, instrumento, setStore, setRockActive]);
 
   const handleKey = (e) => {
     if (e.key === "Enter") estado === "correcto" ? newQ() : check();

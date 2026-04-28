@@ -4,11 +4,8 @@ import * as Tone from "tone";
 import { DynamicFretboard } from "../components/DynamicFretboard";
 import { StatCard } from "../components/StatCard";
 import { notaPara, TC, NIVELES, ACIERTOS_PARA_SUBIR, SOL } from "../constants/music";
-import { useSupabaseAuth } from "../hooks/useSupabaseAuth";
-import { useWeakPoints } from "../hooks/useWeakPoints";
-import { useSyncToDatabase } from "../hooks/useSyncToDatabase";
 
-export default function ModoEjercicios({ store, setStore, audio, instrumento }) {
+export default function ModoEjercicios({ store, setStore, audio, instrumento, setRockActive }) {
   const nivel = store.nivel;
   const cfg = NIVELES[nivel - 1];
   const [tabla, setTabla] = useState(cfg.tablas[0]);
@@ -24,10 +21,6 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento }) 
   const timeoutsRef = useRef([]);
   const sessionRef = useRef({ correctas: 0, intentos: 0 });
   const c = TC[tabla] || "#f97316";
-
-  const { userId, isReady } = useSupabaseAuth();
-  const { recordAttempt } = useWeakPoints(userId);
-  useSyncToDatabase(store, userId);
 
   // Cleanup
   useEffect(() => {
@@ -83,11 +76,6 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento }) 
     setIntentos((i) => i + 1);
     sessionRef.current.intentos++;
 
-    // Record in weak_points
-    if (userId && isReady) {
-      recordAttempt("multiplication", tabla, factor, isCorrect);
-    }
-
     setStore((prev) => {
       const next = { ...prev };
       const e = next.erroresPorTabla[tabla] || { correctas: 0, incorrectas: 0 };
@@ -122,6 +110,7 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento }) 
         // Effects unlock
         if (ns >= 5 && !next.unlocked_effects?.includes("distortion")) {
           next.unlocked_effects = [...(next.unlocked_effects || []), "distortion"];
+          if (setRockActive) setRockActive(true);
         }
         if (next.mejorRacha >= 30 && !next.unlocked_effects?.includes("reverb")) {
           next.unlocked_effects = [...(next.unlocked_effects || []), "reverb"];
@@ -146,7 +135,7 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento }) 
       setStore((prev) => ({ ...prev, rachaGlobal: 0 }));
       await audio.playError(instrumento);
     }
-  }, [input, factor, tabla, streak, audio, instrumento, setStore, userId, isReady, recordAttempt]);
+  }, [input, factor, tabla, streak, audio, instrumento, setStore]);
 
   const playHint = useCallback(async () => {
     if (!factor) return;

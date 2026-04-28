@@ -217,7 +217,7 @@ function MainApp({ store, setStore }) {
             )}
             {modo === "division" && (
               <motion.div key="division" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                <ModoDivision store={store} setStore={setStore} audio={audio} instrumento={instrumento} />
+                <ModoDivision store={store} setStore={setStore} audio={audio} instrumento={instrumento} setRockActive={setRockActive} />
               </motion.div>
             )}
             {modo === "escuchar" && (
