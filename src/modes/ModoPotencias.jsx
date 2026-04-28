@@ -4,6 +4,7 @@ import * as Tone from "tone";
 import { StatCard } from "../components/StatCard";
 import { InstrumentoIndicator } from "../components/InstrumentoIndicator";
 import { LessonPanel } from "../components/LessonPanel";
+import { useWeightedSampling } from "../hooks/useWeightedSampling";
 
 const POTENCIA_NIVELES = [
   { id: 1, label: "Nivel 1", desc: "Exponente 0–3", maxExp: 3 },
@@ -39,16 +40,34 @@ export default function ModoPotencias({ store, setStore, audio, instrumento, set
   const timeoutsRef = useRef([]);
   const cfg = POTENCIA_NIVELES[nivel - 1];
 
+  // Hook para muestreo ponderado (70% weak points, 30% nuevo)
+  const { getWeightedProblem, recordAttempt } = useWeightedSampling(store);
+
   useEffect(() => {
     return () => timeoutsRef.current.forEach(clearTimeout);
   }, []);
 
   const newQ = useCallback(() => {
-    setExp(Math.floor(Math.random() * (cfg.maxExp + 1)));
-    setBase([2, 3, 5][Math.floor(Math.random() * 3)]);
+    // Intentar obtener una potencia ponderada (70% weak points, 30% nuevo)
+    const weighted = getWeightedProblem("powers");
+    let newBase, newExp;
+
+    if (weighted) {
+      // Parsear "2^3" → base=2, exp=3
+      const parts = weighted.split("^");
+      newBase = parseInt(parts[0], 10);
+      newExp = parseInt(parts[1], 10);
+    } else {
+      // Generar nueva potencia aleatoria
+      newExp = Math.floor(Math.random() * (cfg.maxExp + 1));
+      newBase = [2, 3, 5][Math.floor(Math.random() * 3)];
+    }
+
+    setExp(newExp);
+    setBase(newBase);
     setInput("");
     setEstado("esperando");
-  }, [cfg.maxExp]);
+  }, [cfg.maxExp, getWeightedProblem]);
 
   useEffect(() => {
     newQ();
@@ -74,6 +93,9 @@ export default function ModoPotencias({ store, setStore, audio, instrumento, set
 
     setIntentos((i) => i + 1);
 
+    // Registrar intento granular (base ^ exponente) en weak_points
+    const updatedStoreFromRecord = recordAttempt("powers", base, exp, isCorrect);
+
     if (isCorrect) {
       setEstado("correcto");
       setScore((s) => s + 1);
@@ -82,7 +104,7 @@ export default function ModoPotencias({ store, setStore, audio, instrumento, set
       await playEscaleraOctavas(base, exp, audio, instrumento);
       setStore((prev) => {
         const next = {
-          ...prev,
+          ...updatedStoreFromRecord,
           rachaGlobal: prev.rachaGlobal + 1,
           mejorRacha: Math.max(prev.mejorRacha, prev.rachaGlobal + 1),
         };
@@ -105,10 +127,10 @@ export default function ModoPotencias({ store, setStore, audio, instrumento, set
     } else {
       setEstado("incorrecto");
       setStreak(0);
-      setStore((prev) => ({ ...prev, rachaGlobal: 0 }));
+      setStore((prev) => ({ ...updatedStoreFromRecord, rachaGlobal: 0 }));
       await audio.playError(instrumento);
     }
-  }, [input, exp, base, correcto, streak, audio, instrumento, setStore, setRockActive]);
+  }, [input, exp, base, correcto, streak, audio, instrumento, setStore, setRockActive, recordAttempt]);
 
   const handleKey = (e) => {
     if (e.key === "Enter") estado === "correcto" ? newQ() : check();

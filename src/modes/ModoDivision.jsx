@@ -3,6 +3,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { StatCard } from "../components/StatCard";
 import { DivisionTimeline } from "../components/DivisionTimeline";
 import { LessonPanel } from "../components/LessonPanel";
+import { InstrumentoIndicator } from "../components/InstrumentoIndicator";
+import { useWeightedSampling } from "../hooks/useWeightedSampling";
 
 const ACIERTOS_PARA_SUBIR = 5;
 const NIVELES_DIVISION = [
@@ -41,6 +43,9 @@ export default function ModoDivision({ store, setStore, audio, instrumento, setR
 
   const c = "#3b82f6"; // Azul para División
 
+  // Hook para muestreo ponderado (70% weak points, 30% nuevo)
+  const { getWeightedProblem, recordAttempt } = useWeightedSampling(store);
+
   useEffect(() => {
     return () => timeoutsRef.current.forEach(clearTimeout);
   }, []);
@@ -62,13 +67,32 @@ export default function ModoDivision({ store, setStore, audio, instrumento, setR
   }, [nivel, setStore]);
 
   const newQ = useCallback(() => {
-    const { dividendo: div, divisor: dsr, respuestaEsperada: resp } = generateDivisionProblem(nivel);
-    setDividendo(div);
-    setDivisor(dsr);
-    setRespuestaEsperada(resp);
+    // Intentar obtener una división ponderada (70% weak points, 30% nuevo)
+    const weighted = getWeightedProblem("division");
+    let dividendo, divisor, respuestaEsperada;
+
+    if (weighted) {
+      // Parsear "12÷3" → dividendo=12, divisor=3, respuesta=4
+      const parts = weighted.split("÷");
+      dividendo = parseInt(parts[0], 10);
+      divisor = parseInt(parts[1], 10);
+      respuestaEsperada = Math.floor(dividendo / divisor);
+    } else {
+      // Generar nueva división aleatoria
+      const cfg = NIVELES_DIVISION[nivel - 1];
+      const newDivisor = Math.floor(Math.random() * (cfg.maxDsr - cfg.minDsr + 1)) + cfg.minDsr;
+      const resultado = Math.floor(Math.random() * (cfg.maxDiv - cfg.minDiv + 1)) + cfg.minDiv;
+      dividendo = resultado * newDivisor;
+      divisor = newDivisor;
+      respuestaEsperada = resultado;
+    }
+
+    setDividendo(dividendo);
+    setDivisor(divisor);
+    setRespuestaEsperada(respuestaEsperada);
     setInput("");
     setEstado("esperando");
-  }, [nivel]);
+  }, [nivel, getWeightedProblem]);
 
   useEffect(() => {
     newQ();
@@ -82,6 +106,9 @@ export default function ModoDivision({ store, setStore, audio, instrumento, setR
     setIntentos((i) => i + 1);
     sessionRef.current.intentos++;
 
+    // Registrar intento granular (dividendo ÷ divisor) en weak_points
+    const updatedStoreFromRecord = recordAttempt("division", dividendo, divisor, isCorrect);
+
     if (isCorrect) {
       setEstado("correcto");
       setScore((s) => s + 1);
@@ -92,7 +119,7 @@ export default function ModoDivision({ store, setStore, audio, instrumento, setR
       await audio.playDivisionSuccess(instrumento, divisor, respuestaEsperada);
 
       setStore((prev) => {
-        const next = { ...prev, rachaGlobal: prev.rachaGlobal + 1, mejorRacha: Math.max(prev.mejorRacha, prev.rachaGlobal + 1) };
+        const next = { ...updatedStoreFromRecord, rachaGlobal: prev.rachaGlobal + 1, mejorRacha: Math.max(prev.mejorRacha, prev.rachaGlobal + 1) };
 
         // Effects unlock
         if (ns >= 5 && !next.unlocked_effects?.includes("distortion")) {
@@ -124,10 +151,10 @@ export default function ModoDivision({ store, setStore, audio, instrumento, setR
     } else {
       setEstado("incorrecto");
       setStreak(0);
-      setStore((prev) => ({ ...prev, rachaGlobal: 0 }));
+      setStore((prev) => ({ ...updatedStoreFromRecord, rachaGlobal: 0 }));
       await audio.playError(instrumento);
     }
-  }, [input, divisor, respuestaEsperada, dividendo, streak, audio, instrumento, setStore, setRockActive]);
+  }, [input, divisor, respuestaEsperada, dividendo, streak, audio, instrumento, setStore, setRockActive, recordAttempt]);
 
   const handleKey = (e) => {
     if (e.key === "Enter") estado === "correcto" ? newQ() : check();

@@ -4,6 +4,7 @@ import * as Tone from "tone";
 import { DynamicFretboard } from "../components/DynamicFretboard";
 import { StatCard } from "../components/StatCard";
 import { LessonPanel } from "../components/LessonPanel";
+import { useWeightedSampling } from "../hooks/useWeightedSampling";
 import { notaPara, TC, NIVELES, ACIERTOS_PARA_SUBIR, SOL } from "../constants/music";
 
 export default function ModoEjercicios({ store, setStore, audio, instrumento, setRockActive }) {
@@ -22,6 +23,9 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
   const timeoutsRef = useRef([]);
   const sessionRef = useRef({ correctas: 0, intentos: 0 });
   const c = TC[tabla] || "#f97316";
+
+  // Hook para muestreo ponderado (70% weak points, 30% nuevo)
+  const { getWeightedProblem, recordAttempt } = useWeightedSampling(store);
 
   // Cleanup
   useEffect(() => {
@@ -59,10 +63,24 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
   const newQ = useCallback(() => {
     const t = rndTabla();
     setTabla(t);
-    setFactor(Math.floor(Math.random() * 10) + 1);
+
+    // Intentar obtener un factor ponderado (70% weak points, 30% nuevo)
+    const weighted = getWeightedProblem("multiplication");
+    let f;
+
+    if (weighted) {
+      // Parsear "5×7" → factor = 7
+      const parts = weighted.split("×");
+      f = parseInt(parts[1], 10);
+    } else {
+      // Generar nuevo factor aleatorio
+      f = Math.floor(Math.random() * 10) + 1;
+    }
+
+    setFactor(f);
     setInput("");
     setEstado("esperando");
-  }, [rndTabla]);
+  }, [rndTabla, getWeightedProblem]);
 
   useEffect(() => {
     newQ();
@@ -77,14 +95,19 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
     setIntentos((i) => i + 1);
     sessionRef.current.intentos++;
 
-    setStore((prev) => {
-      const next = { ...prev };
-      const e = next.erroresPorTabla[tabla] || { correctas: 0, incorrectas: 0 };
-      if (isCorrect) e.correctas++;
-      else e.incorrectas++;
-      next.erroresPorTabla = { ...next.erroresPorTabla, [tabla]: { ...e } };
-      return next;
-    });
+    // Registrar intento granular (tabla × factor) en weak_points
+    let updatedStore = recordAttempt("multiplication", tabla, factor, isCorrect);
+
+    // También actualizar tabla-level (para compatibilidad)
+    const e = updatedStore.erroresPorTabla[tabla] || { correctas: 0, incorrectas: 0 };
+    if (isCorrect) e.correctas++;
+    else e.incorrectas++;
+    updatedStore = {
+      ...updatedStore,
+      erroresPorTabla: { ...updatedStore.erroresPorTabla, [tabla]: { ...e } },
+    };
+
+    setStore(updatedStore);
 
     if (isCorrect) {
       setEstado("correcto");
