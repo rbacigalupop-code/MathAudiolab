@@ -52,6 +52,7 @@ function MainApp({ store, setStore, profile, switchProfile }) {
   const [instrumento, setInstrumento] = useState("piano");
   const [reloading, setReloading] = useState(false);
   const [rockActive, setRockActive] = useState(false);
+  const [zenMode, setZenModeLocal] = useState(() => store.preferencias?.zenMode ?? true);
   const [showDiagnostics, setShowDiagnostics] = useState(false);
   const [leccionSeleccionada, setLeccionSeleccionada] = useState(null);
 
@@ -60,6 +61,15 @@ function MainApp({ store, setStore, profile, switchProfile }) {
 
   // Filtrar lecciones por perfil del usuario
   const leccionesDisponibles = lessonesData.lecciones.filter((l) => l.perfil === profile);
+
+  // Sincronizar zenMode con store
+  const setZenMode = (value) => {
+    setZenModeLocal(value);
+    setStore(s => ({
+      ...s,
+      preferencias: { ...s.preferencias, zenMode: value }
+    }));
+  };
 
   // Sincronizar modo con contexto de la mascota para tooltips
   useEffect(() => {
@@ -78,8 +88,38 @@ function MainApp({ store, setStore, profile, switchProfile }) {
     setReloading(false);
   };
 
-  const headerColor = rockActive ? "#dc2626" : "#f97316";
-  const bgGradient = rockActive ? "linear-gradient(180deg, #0f172a 0%, #1f0808 100%)" : "#0f172a";
+  // Sistema de colores dinámico: Zen Mode + Rock Mode
+  const getThemeColors = () => {
+    if (rockActive) {
+      // Rock mode siempre es rojo (override)
+      return {
+        headerColor: "#dc2626",
+        bgGradient: "linear-gradient(180deg, #0f172a 0%, #1f0808 100%)",
+        accentColor: "#dc2626",
+      };
+    }
+
+    if (zenMode) {
+      // Zen mode: colores suaves, azul y verde
+      return {
+        headerColor: "#3b82f6",
+        bgGradient: "linear-gradient(180deg, #0f172a 0%, #1e3a8a 100%)",
+        accentColor: "#06b6d4",
+      };
+    }
+
+    // Modo normal: naranja vibrante
+    return {
+      headerColor: "#f97316",
+      bgGradient: "#0f172a",
+      accentColor: "#f97316",
+    };
+  };
+
+  const themeColors = getThemeColors();
+  const headerColor = themeColors.headerColor;
+  const bgGradient = themeColors.bgGradient;
+  const accentColor = themeColors.accentColor;
 
   return (
     <div
@@ -140,7 +180,7 @@ function MainApp({ store, setStore, profile, switchProfile }) {
             >
               📚
             </motion.button>
-            <SettingsPanel store={store} setStore={setStore} profile={profile} switchProfile={switchProfile} />
+            <SettingsPanel store={store} setStore={setStore} profile={profile} switchProfile={switchProfile} zenMode={zenMode} setZenMode={setZenMode} />
             <MediaPanel mode={modo} />
             <button
               onClick={() => setShowDiagnostics(true)}

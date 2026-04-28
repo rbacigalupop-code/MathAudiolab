@@ -6,7 +6,7 @@ const PROFILES = [
   { id: "grace", label: "👩 Grace" },
 ];
 
-export function SettingsPanel({ store, setStore, profile, switchProfile }) {
+export function SettingsPanel({ store, setStore, profile, switchProfile, zenMode, setZenMode }) {
   const [isOpen, setIsOpen] = useState(false);
 
   const settings = store.settings || { volumen: 0.7, bpm: 100 };
@@ -132,6 +132,38 @@ export function SettingsPanel({ store, setStore, profile, switchProfile }) {
                   </div>
                 </div>
               )}
+
+              {/* Zen Mode Toggle */}
+              <div style={{ marginBottom: 16, paddingBottom: 16, borderBottom: "1px solid #334155" }}>
+                <div style={{ fontSize: "12px", color: "#94a3b8", fontWeight: 700, marginBottom: 8 }}>
+                  ☮️ Zen Mode
+                </div>
+                <button
+                  onClick={() => setZenMode(!zenMode)}
+                  style={{
+                    width: "100%",
+                    padding: "10px",
+                    borderRadius: 6,
+                    border: "2px solid",
+                    borderColor: zenMode ? "#06b6d4" : "#f97316",
+                    background: zenMode ? "#06b6d41a" : "transparent",
+                    color: zenMode ? "#06b6d4" : "#f97316",
+                    fontWeight: 700,
+                    fontSize: "12px",
+                    cursor: "pointer",
+                    transition: "all .2s",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = zenMode ? "#06b6d4" : "#f97316";
+                    e.currentTarget.style.opacity = "0.8";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.opacity = "1";
+                  }}
+                >
+                  {zenMode ? "✓ Zen Mode Activo" : "○ Zen Mode Inactivo"}
+                </button>
+              </div>
 
               <div style={{ marginBottom: 16 }}>
                 <div style={{ fontSize: "12px", color: "#94a3b8", fontWeight: 700, marginBottom: 8 }}>
