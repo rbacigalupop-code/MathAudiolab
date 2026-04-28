@@ -104,22 +104,19 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
     setIntentos((i) => i + 1);
     sessionRef.current.intentos++;
 
-    // Registrar intento granular (tabla × factor) en weak_points (OLD SYSTEM)
-    let updatedStore = recordAttempt("multiplication", tabla, factor, isCorrect);
-
-    // También actualizar tabla-level (para compatibilidad)
-    const e = updatedStore.erroresPorTabla[tabla] || { correctas: 0, incorrectas: 0 };
-    if (isCorrect) e.correctas++;
-    else e.incorrectas++;
-    updatedStore = {
-      ...updatedStore,
-      erroresPorTabla: { ...updatedStore.erroresPorTabla, [tabla]: { ...e } },
-    };
-
-    setStore(updatedStore);
-
+    // HOTFIX: Don't use recordAttempt (causes re-render loops). Use recordError directly
     // Registrar en el nuevo errorLog (NEW SYSTEM - Pilar 1)
     recordError(tabla.toString(), factor.toString(), isCorrect, "×");
+
+    // Update store with local logic (avoid recordAttempt dependency)
+    setStore((prev) => {
+      const next = { ...prev };
+      const e = next.erroresPorTabla?.[tabla] || { correctas: 0, incorrectas: 0 };
+      if (isCorrect) e.correctas++;
+      else e.incorrectas++;
+      next.erroresPorTabla = { ...next.erroresPorTabla, [tabla]: { ...e } };
+      return next;
+    });
 
     if (isCorrect) {
       setEstado("correcto");

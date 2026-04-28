@@ -114,9 +114,7 @@ export default function ModoDivision({ store, setStore, audio, instrumento, setR
     setIntentos((i) => i + 1);
     sessionRef.current.intentos++;
 
-    // Registrar intento granular (dividendo ÷ divisor) en weak_points (OLD SYSTEM)
-    const updatedStoreFromRecord = recordAttempt("division", dividendo, divisor, isCorrect);
-
+    // HOTFIX: Remove recordAttempt from dependencies to prevent re-render loops
     // Registrar en el nuevo errorLog (NEW SYSTEM - Pilar 1)
     recordError(dividendo.toString(), divisor.toString(), isCorrect, "÷");
 
@@ -131,11 +129,12 @@ export default function ModoDivision({ store, setStore, audio, instrumento, setR
       await audio.playDivisionSuccess(instrumento, divisor, respuestaEsperada);
 
       setStore((prev) => {
-        const next = { ...updatedStoreFromRecord, rachaGlobal: prev.rachaGlobal + 1, mejorRacha: Math.max(prev.mejorRacha, prev.rachaGlobal + 1) };
+        const next = { ...prev, rachaGlobal: prev.rachaGlobal + 1, mejorRacha: Math.max(prev.mejorRacha || 0, prev.rachaGlobal + 1) };
 
         // Effects unlock
         if (ns >= 5 && !next.unlocked_effects?.includes("distortion")) {
           next.unlocked_effects = [...(next.unlocked_effects || []), "distortion"];
+          if (setRockActive) setRockActive(true);
         }
         if (next.mejorRacha >= 30 && !next.unlocked_effects?.includes("reverb")) {
           next.unlocked_effects = [...(next.unlocked_effects || []), "reverb"];
@@ -153,11 +152,6 @@ export default function ModoDivision({ store, setStore, audio, instrumento, setR
           audio.playLevelUp(instrumento);
         }
 
-        // Effects unlock
-        if (ns >= 5 && !next.unlocked_effects?.includes("distortion")) {
-          next.unlocked_effects = [...(next.unlocked_effects || []), "distortion"];
-          if (setRockActive) setRockActive(true);
-        }
         return next;
       });
     } else {
@@ -169,9 +163,9 @@ export default function ModoDivision({ store, setStore, audio, instrumento, setR
       // Clear error filter after 800ms
       const idClear = setTimeout(() => audio.clearErrorFilter(300), 800);
       timeoutsRef.current.push(idClear);
-      setStore((prev) => ({ ...updatedStoreFromRecord, rachaGlobal: 0 }));
+      setStore((prev) => ({ ...prev, rachaGlobal: 0 }));
     }
-  }, [input, divisor, respuestaEsperada, dividendo, streak, audio, instrumento, setStore, setRockActive, recordAttempt]);
+  }, [input, divisor, respuestaEsperada, dividendo, streak, audio, instrumento, setStore, setRockActive, recordError, triggerPunch]);
 
   const handleKey = (e) => {
     if (e.key === "Enter") estado === "correcto" ? newQ() : check();

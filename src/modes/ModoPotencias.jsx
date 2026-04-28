@@ -101,10 +101,8 @@ export default function ModoPotencias({ store, setStore, audio, instrumento, set
 
     setIntentos((i) => i + 1);
 
-    // Registrar intento granular (base ^ exponente) en weak_points (OLD SYSTEM)
-    const updatedStoreFromRecord = recordAttempt("powers", base, exp, isCorrect);
-
-    // Registrar en el nuevo errorLog (NEW SYSTEM - Pilar 1)
+    // HOTFIX: Remove recordAttempt from dependencies to prevent re-render loops
+    // Instead, we'll handle store updates directly
     recordError(base.toString(), exp.toString(), isCorrect, "^");
 
     if (isCorrect) {
@@ -115,14 +113,13 @@ export default function ModoPotencias({ store, setStore, audio, instrumento, set
       triggerPunch(); // Animar la mascota
       await playEscaleraOctavas(base, exp, audio, instrumento);
       setStore((prev) => {
-        const next = {
-          ...updatedStoreFromRecord,
-          rachaGlobal: prev.rachaGlobal + 1,
-          mejorRacha: Math.max(prev.mejorRacha, prev.rachaGlobal + 1),
-        };
+        const next = { ...prev };
+
+        next.rachaGlobal = prev.rachaGlobal + 1;
+        next.mejorRacha = Math.max(prev.mejorRacha || 0, next.rachaGlobal);
 
         // Effects unlock
-        if (streak + 1 >= 5 && !next.unlocked_effects?.includes("distortion")) {
+        if (ns >= 5 && !next.unlocked_effects?.includes("distortion")) {
           next.unlocked_effects = [...(next.unlocked_effects || []), "distortion"];
           if (setRockActive) setRockActive(true);
           audio.setRockMode(true);
@@ -145,9 +142,9 @@ export default function ModoPotencias({ store, setStore, audio, instrumento, set
       // Clear error filter after 800ms
       const idClear = setTimeout(() => audio.clearErrorFilter(300), 800);
       timeoutsRef.current.push(idClear);
-      setStore((prev) => ({ ...updatedStoreFromRecord, rachaGlobal: 0 }));
+      setStore((prev) => ({ ...prev, rachaGlobal: 0 }));
     }
-  }, [input, exp, base, correcto, streak, audio, instrumento, setStore, setRockActive, recordAttempt]);
+  }, [input, exp, base, correcto, streak, audio, instrumento, setStore, setRockActive, recordError, triggerPunch]);
 
   const handleKey = (e) => {
     if (e.key === "Enter") estado === "correcto" ? newQ() : check();
