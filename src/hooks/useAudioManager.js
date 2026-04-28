@@ -111,7 +111,7 @@ function buildFallbackSynth() {
 function ensureMasterChain() {
   if (distortionNode) return;
   distortionNode = new Tone.Distortion({ distortion: 0, wet: 0 });
-  masterVolume = new Tone.Volume(0);
+  masterVolume = new Tone.Volume(2); // Aumentar volumen general (+2dB)
   distortionNode.connect(masterVolume);
   masterVolume.toDestination();
 }
@@ -201,7 +201,24 @@ export function useAudioManager() {
   const playVictory = useCallback(async (currentInstrument) => {
     const s = await getSamplerSync(currentInstrument);
     const t0 = Tone.now();
+
+    // Agregar distorsión si es guitarra
+    ensureMasterChain();
+    const wasDistortion = distortionNode.distortion;
+    const wasWet = distortionNode.wet.value;
+
+    if (currentInstrument === "guitar-acoustic") {
+      distortionNode.distortion = 0.6;
+      distortionNode.wet.value = 0.7;
+    }
+
     [["G2","8n"],["B2","8n"],["D3","8n"],["G3","4n"]].forEach(([n,d],i) => s.triggerAttackRelease(n, d, t0 + i*0.18));
+
+    // Restaurar distorsión anterior después de la secuencia
+    setTimeout(() => {
+      distortionNode.distortion = wasDistortion;
+      distortionNode.wet.value = wasWet;
+    }, 1000);
   }, []);
 
   const playLevelUp = useCallback(async (currentInstrument) => {

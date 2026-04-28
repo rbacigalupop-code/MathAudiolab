@@ -146,38 +146,81 @@ const MascotaFoca = React.memo(() => {
           opacity="0.6"
         />
 
-        {/* Cabeza - Círculo grande */}
-        <circle
+        {/* Cabeza - Forma más redonda y natural de foca */}
+        <ellipse
           cx="100"
-          cy="70"
-          r="52"
+          cy="65"
+          rx="56"
+          ry="58"
           fill="url(#bodyGradient)"
           stroke="#5D4037"
           strokeWidth="3"
         />
 
-        {/* Aleta izquierda - Grande y redondeada */}
+        {/* Oreja izquierda - En forma de foca, redondeada */}
         <ellipse
-          cx="45"
-          cy="140"
-          rx="22"
-          ry="38"
+          cx="35"
+          cy="35"
+          rx="18"
+          ry="28"
           fill="url(#bodyGradient)"
           stroke="#5D4037"
           strokeWidth="2.5"
-          transform="rotate(-25 45 140)"
+          transform="rotate(-30 35 35)"
+        />
+        {/* Interior oreja izquierda */}
+        <ellipse
+          cx="37"
+          cy="38"
+          rx="10"
+          ry="18"
+          fill="#FFE4E1"
+          opacity="0.8"
         />
 
-        {/* Aleta derecha - Grande y redondeada */}
+        {/* Oreja derecha - En forma de foca, redondeada */}
         <ellipse
-          cx="155"
-          cy="140"
-          rx="22"
-          ry="38"
+          cx="165"
+          cy="35"
+          rx="18"
+          ry="28"
           fill="url(#bodyGradient)"
           stroke="#5D4037"
           strokeWidth="2.5"
-          transform="rotate(25 155 140)"
+          transform="rotate(30 165 35)"
+        />
+        {/* Interior oreja derecha */}
+        <ellipse
+          cx="163"
+          cy="38"
+          rx="10"
+          ry="18"
+          fill="#FFE4E1"
+          opacity="0.8"
+        />
+
+        {/* Aleta frontal izquierda - Brazo para el punch */}
+        <ellipse
+          cx="50"
+          cy="160"
+          rx="16"
+          ry="32"
+          fill="url(#bodyGradient)"
+          stroke="#5D4037"
+          strokeWidth="2"
+          transform="rotate(-20 50 160)"
+        />
+
+        {/* Aleta frontal derecha - Brazo para el punch */}
+        <ellipse
+          cx="150"
+          cy="160"
+          rx="16"
+          ry="32"
+          fill="url(#bodyGradient)"
+          stroke="#5D4037"
+          strokeWidth="2"
+          transform="rotate(20 150 160)"
         />
 
         {/* Mejilla izquierda - Grande y rosada */}
@@ -198,25 +241,33 @@ const MascotaFoca = React.memo(() => {
           opacity="0.75"
         />
 
-        {/* Ojo izquierdo - Grande */}
+        {/* Ojo izquierdo - Muy grande y expresivo */}
         <circle
-          cx="70"
-          cy="55"
-          r={MASCOTA_SIZE.EYE_RADIUS + 2}
-          fill={MASCOTA_COLORS.EYE}
+          cx="68"
+          cy="52"
+          r="12"
+          fill="#1a1a1a"
+          stroke="#0a0a0a"
+          strokeWidth="1"
         />
-        {/* Brillo en ojo izquierdo */}
-        <circle cx="74" cy="50" r="3.5" fill="white" opacity="0.9" />
+        {/* Brillo grande en ojo izquierdo */}
+        <circle cx="72" cy="47" r="4.5" fill="white" opacity="0.95" />
+        {/* Reflejo pequeño */}
+        <circle cx="75" cy="50" r="2" fill="white" opacity="0.6" />
 
-        {/* Ojo derecho - Grande */}
+        {/* Ojo derecho - Muy grande y expresivo */}
         <circle
-          cx="130"
-          cy="55"
-          r={MASCOTA_SIZE.EYE_RADIUS + 2}
-          fill={MASCOTA_COLORS.EYE}
+          cx="132"
+          cy="52"
+          r="12"
+          fill="#1a1a1a"
+          stroke="#0a0a0a"
+          strokeWidth="1"
         />
-        {/* Brillo en ojo derecho */}
-        <circle cx="134" cy="50" r="3.5" fill="white" opacity="0.9" />
+        {/* Brillo grande en ojo derecho */}
+        <circle cx="136" cy="47" r="4.5" fill="white" opacity="0.95" />
+        {/* Reflejo pequeño */}
+        <circle cx="139" cy="50" r="2" fill="white" opacity="0.6" />
 
         {/* Párpados - Cambian con expresión happy */}
         {isHappy ? (
@@ -240,11 +291,20 @@ const MascotaFoca = React.memo(() => {
           </>
         ) : null}
 
-        {/* Nariz - Triangular cute */}
-        <polygon
-          points="100,80 95,88 105,88"
-          fill={MASCOTA_COLORS.OUTLINE}
+        {/* Nariz de trufa - Grande y realista */}
+        <ellipse
+          cx="100"
+          cy="85"
+          rx="10"
+          ry="12"
+          fill="#4A2F2A"
+          stroke="#3D2620"
+          strokeWidth="1.5"
         />
+        {/* Orificio nasal izquierdo */}
+        <circle cx="96" cy="83" r="2.5" fill="#2D1F1A" />
+        {/* Orificio nasal derecho */}
+        <circle cx="104" cy="83" r="2.5" fill="#2D1F1A" />
 
         {/* Boca - Cambia con expresión happy */}
         {isHappy ? (
