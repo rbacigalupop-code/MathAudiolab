@@ -73,23 +73,14 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
     const t = rndTabla();
     setTabla(t);
 
-    // Intentar obtener un factor ponderado (70% weak points, 30% nuevo)
-    const weighted = getWeightedProblem("multiplication");
-    let f;
-
-    if (weighted) {
-      // Parsear "5×7" → factor = 7
-      const parts = weighted.split("×");
-      f = parseInt(parts[1], 10);
-    } else {
-      // Generar nuevo factor aleatorio
-      f = Math.floor(Math.random() * 10) + 1;
-    }
+    // HOTFIX: Don't call getWeightedProblem (prevents re-render loop with store changes)
+    // Just generate random factor
+    const f = Math.floor(Math.random() * 10) + 1;
 
     setFactor(f);
     setInput("");
     setEstado("esperando");
-  }, [rndTabla, getWeightedProblem]);
+  }, [rndTabla]);  // Only depend on rndTabla, NOT getWeightedProblem
 
   useEffect(() => {
     newQ();

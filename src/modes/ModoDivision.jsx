@@ -75,32 +75,24 @@ export default function ModoDivision({ store, setStore, audio, instrumento, setR
   }, [nivelSeleccionado, setStore]);
 
   const newQ = useCallback(() => {
-    // Intentar obtener una división ponderada (70% weak points, 30% nuevo)
-    const weighted = getWeightedProblem("division");
+    // HOTFIX: Don't call getWeightedProblem (prevents re-render loop with store changes)
+    // Just generate random questions consistently
     let dividendo, divisor, respuestaEsperada;
 
-    if (weighted) {
-      // Parsear "12÷3" → dividendo=12, divisor=3, respuesta=4
-      const parts = weighted.split("÷");
-      dividendo = parseInt(parts[0], 10);
-      divisor = parseInt(parts[1], 10);
-      respuestaEsperada = Math.floor(dividendo / divisor);
-    } else {
-      // Generar nueva división aleatoria
-      const cfg = NIVELES_DIVISION[nivelSeleccionado - 1];
-      const newDivisor = Math.floor(Math.random() * (cfg.maxDsr - cfg.minDsr + 1)) + cfg.minDsr;
-      const resultado = Math.floor(Math.random() * (cfg.maxDiv - cfg.minDiv + 1)) + cfg.minDiv;
-      dividendo = resultado * newDivisor;
-      divisor = newDivisor;
-      respuestaEsperada = resultado;
-    }
+    // Generar nueva división aleatoria
+    const cfg = NIVELES_DIVISION[nivelSeleccionado - 1];
+    const newDivisor = Math.floor(Math.random() * (cfg.maxDsr - cfg.minDsr + 1)) + cfg.minDsr;
+    const resultado = Math.floor(Math.random() * (cfg.maxDiv - cfg.minDiv + 1)) + cfg.minDiv;
+    dividendo = resultado * newDivisor;
+    divisor = newDivisor;
+    respuestaEsperada = resultado;
 
     setDividendo(dividendo);
     setDivisor(divisor);
     setRespuestaEsperada(respuestaEsperada);
     setInput("");
     setEstado("esperando");
-  }, [nivelSeleccionado, getWeightedProblem]);
+  }, [nivelSeleccionado]);  // Only depend on nivelSeleccionado, NOT getWeightedProblem
 
   useEffect(() => {
     newQ();

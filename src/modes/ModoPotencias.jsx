@@ -56,26 +56,19 @@ export default function ModoPotencias({ store, setStore, audio, instrumento, set
   }, []);
 
   const newQ = useCallback(() => {
-    // Intentar obtener una potencia ponderada (70% weak points, 30% nuevo)
-    const weighted = getWeightedProblem("powers");
+    // HOTFIX: Don't call getWeightedProblem on every newQ (prevents loop)
+    // Just generate random until user explicitly needs weak point review
     let newBase, newExp;
 
-    if (weighted) {
-      // Parsear "2^3" → base=2, exp=3
-      const parts = weighted.split("^");
-      newBase = parseInt(parts[0], 10);
-      newExp = parseInt(parts[1], 10);
-    } else {
-      // Generar nueva potencia aleatoria
-      newExp = Math.floor(Math.random() * (cfg.maxExp + 1));
-      newBase = [2, 3, 5][Math.floor(Math.random() * 3)];
-    }
+    // Generar nueva potencia aleatoria (simplificar: evitar loop de dependencias)
+    newExp = Math.floor(Math.random() * (cfg.maxExp + 1));
+    newBase = [2, 3, 5][Math.floor(Math.random() * 3)];
 
     setExp(newExp);
     setBase(newBase);
     setInput("");
     setEstado("esperando");
-  }, [cfg.maxExp, getWeightedProblem]);
+  }, [cfg.maxExp]);  // Only depend on cfg, NOT getWeightedProblem
 
   useEffect(() => {
     newQ();
