@@ -6,6 +6,7 @@ import {
   MASCOTA_ANIMATION,
   MASCOTA_COLORS,
   MASCOTA_SIZE,
+  getTooltipForMode,
 } from "../constants/mascota";
 
 /**
@@ -68,8 +69,8 @@ const MascotaFoca = React.memo(() => {
     setShowTooltip(!showTooltip);
   };
 
-  // Tooltip message para el modo actual
-  const tooltipText = MASCOTA_TOOLTIPS[currentMode] || "¡Tócame para ver instrucciones!";
+  // Tooltip message para el modo actual - usar contenido dinámico del manual educativo
+  const tooltipText = getTooltipForMode(currentMode);
 
   // Responsive scale basado en tamaño de pantalla
   const scale = isMobileDevice ? 0.7 : window.innerWidth < 1024 ? 0.85 : 1;
