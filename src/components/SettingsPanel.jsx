@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { BandGuideModal } from "./BandGuideModal";
 
 const PROFILES = [
   { id: "cristobal", label: "👨 Cristóbal" },
@@ -8,6 +9,7 @@ const PROFILES = [
 
 export function SettingsPanel({ store, setStore, profile, switchProfile, zenMode, setZenMode }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [showBandGuide, setShowBandGuide] = useState(false);
 
   const settings = store.settings || { volumen: 0.7, bpm: 100 };
 
@@ -239,6 +241,32 @@ export function SettingsPanel({ store, setStore, profile, switchProfile, zenMode
                 </div>
               </div>
 
+              {/* Band Guide Button */}
+              <button
+                onClick={() => setShowBandGuide(true)}
+                style={{
+                  width: "100%",
+                  padding: "10px",
+                  marginBottom: 8,
+                  borderRadius: 8,
+                  border: "1.5px solid #a855f7",
+                  background: "#a855f71a",
+                  color: "#a855f7",
+                  fontWeight: 700,
+                  fontSize: "12px",
+                  cursor: "pointer",
+                  transition: "all .2s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "#a855f733";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "#a855f71a";
+                }}
+              >
+                🎸 Band Guide
+              </button>
+
               <button
                 onClick={() => setIsOpen(false)}
                 style={{
@@ -259,6 +287,12 @@ export function SettingsPanel({ store, setStore, profile, switchProfile, zenMode
           </>
         )}
       </AnimatePresence>
+
+      {/* Band Guide Modal */}
+      <BandGuideModal
+        isOpen={showBandGuide}
+        onClose={() => setShowBandGuide(false)}
+      />
     </>
   );
 }
