@@ -40,13 +40,12 @@ export function useWeightedSampling(store) {
       mode = normalizedMode;
     }
 
-    // Construir clave de error: erroresPorMultiplication, erroresPorDivision, etc.
-    const modeCapitalized = mode.charAt(0).toUpperCase() + mode.slice(1);
-    const errorKey = `erroresPor${modeCapitalized}`;
-    const errors = store[errorKey];
+    // HOTFIX: Usar errorLog unificado en lugar de erroresPor${Mode}
+    // El store mantiene un único errorLog con claves como "5×7", "12÷3", "2^3"
+    const errors = store.errorLog;
 
     // Validar estructura de store
-    if (!errors || typeof errors !== "object") {
+    if (!errors || typeof errors !== "object" || Object.keys(errors).length === 0) {
       return null; // Sin historial, generar nuevo problema
     }
 
@@ -104,27 +103,34 @@ export function useWeightedSampling(store) {
 
     const key = `${operand1}${symbol}${operand2}`;
 
-    // Construir clave de error: erroresPorMultiplication, etc.
+    // HOTFIX: Update BOTH systems (errorLog + legacy erroresPor${Mode})
+    // Update errorLog (new unified system)
+    const errorLog = store.errorLog || {};
+    const errorEntry = errorLog[key] || { intentos: 0, fallos: 0 };
+    errorEntry.intentos++;
+    if (!isCorrect) errorEntry.fallos++;
+    errorEntry.rate = errorEntry.fallos / errorEntry.intentos;
+    errorEntry.lastAttempt = Date.now();
+
+    // Also update legacy system for backward compatibility
     const modeCapitalized = normalizedMode.charAt(0).toUpperCase() + normalizedMode.slice(1);
     const errorKey = `erroresPor${modeCapitalized}`;
-
-    // Obtener historial actual
     const erroresPorMode = store[errorKey] || {};
-    const entry = erroresPorMode[key] || { correctas: 0, incorrectas: 0 };
+    const legacyEntry = erroresPorMode[key] || { correctas: 0, incorrectas: 0 };
 
-    // Actualizar contadores
     if (isCorrect) {
-      entry.correctas += 1;
+      legacyEntry.correctas += 1;
     } else {
-      entry.incorrectas = (entry.incorrectas || 0) + 1;
+      legacyEntry.incorrectas = (legacyEntry.incorrectas || 0) + 1;
     }
 
-    // Retornar store actualizado
+    // Retornar store actualizado con ambos sistemas
     return {
       ...store,
+      errorLog: { ...errorLog, [key]: errorEntry },
       [errorKey]: {
         ...erroresPorMode,
-        [key]: { ...entry },
+        [key]: { ...legacyEntry },
       },
     };
   }, [store]);

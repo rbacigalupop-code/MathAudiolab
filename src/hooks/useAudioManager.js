@@ -9,6 +9,32 @@ let errorFilterNode = null;
 let masterVolume = null;
 let rockModeActive = false;
 
+// HOTFIX: Resume AudioContext after user gesture
+let audioContextResumed = false;
+
+function ensureAudioContextRunning() {
+  if (audioContextResumed || Tone.context.state === "running") {
+    return;
+  }
+  try {
+    Tone.context.resume().then(() => {
+      audioContextResumed = true;
+      console.log("✓ AudioContext resumed");
+    }).catch(e => {
+      console.warn("Could not resume AudioContext:", e);
+    });
+  } catch (e) {
+    console.warn("AudioContext resume error:", e);
+  }
+}
+
+// Add click listener globally to resume context
+if (typeof window !== "undefined") {
+  window.addEventListener("click", ensureAudioContextRunning, { once: true });
+  window.addEventListener("keydown", ensureAudioContextRunning, { once: true });
+  window.addEventListener("touchstart", ensureAudioContextRunning, { once: true });
+}
+
 export const INSTRUMENTOS = {
   "bass-electric": {
     label: "🎸 Bajo eléctrico",

@@ -14,8 +14,9 @@ import { motion } from "framer-motion";
  * (4 items each)
  */
 export function BeatSlicerVisualizer({ dividendo, divisor, bpm = 120, accentColor = "#3b82f6" }) {
-  // Validate inputs
-  if (!dividendo || !divisor || divisor === 0) {
+  // HOTFIX: Validate inputs strictly to avoid negative widths
+  if (!dividendo || !divisor || divisor === 0 || divisor < 0 || dividendo < 0 || dividendo > 1000 || divisor > 1000) {
+    console.warn("[BeatSlicerVisualizer] Invalid inputs:", { dividendo, divisor });
     return null;
   }
 
