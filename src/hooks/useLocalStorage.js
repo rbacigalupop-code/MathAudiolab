@@ -82,7 +82,10 @@ export function useLocalStorage() {
   const recordError = useCallback((op1, op2, isCorrect, symbol = "×", banda = null) => {
     setStore((prev) => {
       const key = `${op1}${symbol}${op2}`;
-      const entry = prev.errorLog[key] || { intentos: 0, fallos: 0, lastAttempt: null };
+
+      // HOTFIX: Ensure errorLog exists and is a valid object
+      const errorLog = prev.errorLog || {};
+      const entry = errorLog[key] || { intentos: 0, fallos: 0, lastAttempt: null, rate: 0 };
 
       entry.intentos++;
       if (!isCorrect) entry.fallos++;
@@ -92,7 +95,7 @@ export function useLocalStorage() {
 
       const next = {
         ...prev,
-        errorLog: { ...prev.errorLog, [key]: entry }
+        errorLog: { ...errorLog, [key]: entry }
       };
 
       saveStore(next);

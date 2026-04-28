@@ -13,26 +13,41 @@ let rockModeActive = false;
 let audioContextResumed = false;
 
 function ensureAudioContextRunning() {
-  if (audioContextResumed || Tone.context.state === "running") {
-    return;
-  }
-  try {
-    Tone.context.resume().then(() => {
+  // Skip if already running
+  if (Tone.context.state === "running") {
+    if (!audioContextResumed) {
       audioContextResumed = true;
-      console.log("✓ AudioContext resumed");
-    }).catch(e => {
-      console.warn("Could not resume AudioContext:", e);
-    });
-  } catch (e) {
-    console.warn("AudioContext resume error:", e);
+      console.log("✓ AudioContext already running");
+    }
+    return Promise.resolve();
   }
+
+  // Try to resume
+  try {
+    const promise = Tone.context.resume();
+    if (promise) {
+      return promise.then(() => {
+        audioContextResumed = true;
+        console.log("✓ AudioContext resumed successfully");
+      }).catch(e => {
+        console.warn("⚠ AudioContext resume error:", e.message);
+      });
+    }
+  } catch (e) {
+    console.warn("⚠ AudioContext resume exception:", e.message);
+  }
+  return Promise.resolve();
 }
 
-// Add click listener globally to resume context
+// Add multiple event listeners to resume context (most will be consumed by the first)
 if (typeof window !== "undefined") {
-  window.addEventListener("click", ensureAudioContextRunning, { once: true });
-  window.addEventListener("keydown", ensureAudioContextRunning, { once: true });
-  window.addEventListener("touchstart", ensureAudioContextRunning, { once: true });
+  const resumeContext = () => {
+    ensureAudioContextRunning();
+  };
+  window.addEventListener("click", resumeContext, true);  // Capture phase
+  window.addEventListener("keydown", resumeContext, true);
+  window.addEventListener("touchstart", resumeContext, true);
+  document.addEventListener("click", resumeContext, true);
 }
 
 export const INSTRUMENTOS = {
@@ -188,11 +203,15 @@ function tryLoadSampler(cdnUrl, samples, eqConfig) {
 }
 
 function getSamplerSync(currentInstrument) {
+  // HOTFIX: Ensure AudioContext is running before loading/playing audio
+  ensureAudioContextRunning();
+
   if (samplerInstances[currentInstrument]) return Promise.resolve(samplerInstances[currentInstrument]);
   if (samplerPromises[currentInstrument]) return samplerPromises[currentInstrument];
 
   const config = INSTRUMENTOS[currentInstrument];
   samplerPromises[currentInstrument] = (async () => {
+    // Try each CDN in order
     for (const cdn of config.cdns) {
       try {
         const s = await tryLoadSampler(cdn, config.samples, config.eq);
@@ -204,6 +223,7 @@ function getSamplerSync(currentInstrument) {
         console.warn(`✗ CDN: ${cdn}`, e.message);
       }
     }
+    // Fallback: use synth
     usingFallback[currentInstrument] = true;
     samplerInstances[currentInstrument] = buildInstrumentSynth(currentInstrument);
     console.log(`🎹 Synth: ${currentInstrument}`);
