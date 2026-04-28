@@ -31,7 +31,7 @@ export function useWeightedSampling(store) {
   const getWeightedProblem = useCallback((mode = "multiplication") => {
     // Validar y normalizar mode
     const normalizedMode = (mode || "multiplication").toLowerCase();
-    const validModes = ["multiplication", "division", "powers"];
+    const validModes = ["multiplication", "division", "powers", "sums", "subtractions", "fractions"];
 
     if (!validModes.includes(normalizedMode)) {
       console.warn(`[useWeightedSampling] Modo inválido: ${mode}, usando "multiplication"`);

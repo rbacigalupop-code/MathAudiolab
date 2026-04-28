@@ -38,6 +38,42 @@ const LESSONS = {
       example: "7¹ = 7, 7⁰ = 1",
     },
   ],
+  sums: [
+    {
+      title: "¿Qué es suma?",
+      content: "Suma es combinar cantidades. Si tienes 3 manzanas y agregas 4 manzanas más, tienes 3 + 4 = 7 manzanas en total.",
+      example: "3 + 4 = 7",
+    },
+    {
+      title: "Propiedad Conmutativa",
+      content: "El orden no importa en suma. 3 + 4 = 4 + 3 = 7. Puedes sumar en cualquier orden.",
+      example: "4 + 3 = 3 + 4 = 7",
+    },
+  ],
+  subtractions: [
+    {
+      title: "¿Qué es resta?",
+      content: "Resta es quitar o encontrar la diferencia entre cantidades. Si tienes 7 manzanas y quitas 4, te quedan 7 - 4 = 3 manzanas.",
+      example: "7 - 4 = 3",
+    },
+    {
+      title: "Resta y Suma",
+      content: "Resta es lo opuesto a suma. Si 3 + 4 = 7, entonces 7 - 4 = 3 y 7 - 3 = 4.",
+      example: "7 - 4 = 3, porque 3 + 4 = 7",
+    },
+  ],
+  fractions: [
+    {
+      title: "¿Qué es una fracción?",
+      content: "Una fracción representa una parte de un todo. El número arriba (numerador) indica cuántas partes tienes, y el número abajo (denominador) indica en cuántas partes está dividido el todo.",
+      example: "1/2 es una mitad, 1/4 es un cuarto",
+    },
+    {
+      title: "Operaciones con Fracciones",
+      content: "Puedes sumar, restar, multiplicar y dividir fracciones. Para sumar fracciones con el mismo denominador, solo suma los numeradores.",
+      example: "1/4 + 2/4 = 3/4",
+    },
+  ],
 };
 
 export function LessonPanel({ mode = "multiplication" }) {
