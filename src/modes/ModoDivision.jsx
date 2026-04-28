@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { StatCard } from "../components/StatCard";
-import { DivisionTimeline } from "../components/DivisionTimeline";
+import { BeatSlicerVisualizer } from "../components/BeatSlicerVisualizer";
 import { LessonPanel } from "../components/LessonPanel";
 import { InstrumentoIndicator } from "../components/InstrumentoIndicator";
 import { useWeightedSampling } from "../hooks/useWeightedSampling";
@@ -293,9 +293,13 @@ export default function ModoDivision({ store, setStore, audio, instrumento, setR
             <span style={{ color: "#475569" }}>?</span>
           </div>
 
-          <div style={{ margin: "14px 0", minHeight: 80 }}>
-            <DivisionTimeline dividendo={dividendo} divisor={divisor} estado={estado} respuestaEsperada={respuestaEsperada} />
-          </div>
+          {/* Beat Slicer Visualization - shows rhythm-based division */}
+          <BeatSlicerVisualizer
+            dividendo={dividendo}
+            divisor={divisor}
+            bpm={120}
+            accentColor={c}
+          />
 
           <div style={{ display: "flex", gap: 8, justifyContent: "center", alignItems: "center", margin: "10px 0", flexWrap: "wrap" }}>
             <input
