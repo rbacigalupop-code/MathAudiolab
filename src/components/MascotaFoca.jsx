@@ -9,9 +9,9 @@ import {
 } from "../constants/mascota";
 
 /**
- * Componente MascotaFoca - Foca kawaii interactiva mejorada
+ * Componente MascotaFoca - Foca kawaii realista
  * - Aparece en esquina inferior derecha (fixed)
- * - SVG escalable con diseño más detallado y lindo
+ * - SVG con diseño realista: hocico grande, cabeza redonda
  * - Click muestra tooltip con instrucción del modo
  * - Animación de punch: se golpea el costado al acertar
  * - Auto-dimite tooltip después de 4s
@@ -35,12 +35,12 @@ const MascotaFoca = React.memo(() => {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // Trigger punch: happy expression durante 1.2s después del punch
+  // Trigger punch: happy expression durante 1s después del punch
   useEffect(() => {
     if (punchTrigger > 0) {
       setIsHappy(true);
       setIsPunching(true);
-      const happyTimeout = setTimeout(() => setIsHappy(false), 1200);
+      const happyTimeout = setTimeout(() => setIsHappy(false), 1000);
       const punchTimeout = setTimeout(() => setIsPunching(false), 500);
       return () => {
         clearTimeout(happyTimeout);
@@ -88,7 +88,7 @@ const MascotaFoca = React.memo(() => {
       }}
       transition={{ type: "spring", stiffness: 100, damping: 15 }}
     >
-      {/* SVG de la foca - Diseño mejorado y más cute */}
+      {/* SVG de la foca - Diseño realista */}
       <motion.svg
         viewBox={`0 0 ${MASCOTA_SIZE.VIEWPORT_WIDTH} ${MASCOTA_SIZE.VIEWPORT_HEIGHT}`}
         width={MASCOTA_SIZE.BODY_WIDTH}
@@ -125,12 +125,12 @@ const MascotaFoca = React.memo(() => {
           </radialGradient>
         </defs>
 
-        {/* Cuerpo principal - Óvalo redondeado con gradiente */}
+        {/* Cuerpo principal - Forma redondeada */}
         <ellipse
           cx="100"
-          cy="150"
-          rx="58"
-          ry="75"
+          cy="160"
+          rx="56"
+          ry="70"
           fill="url(#bodyGradient)"
           stroke="#5D4037"
           strokeWidth="3"
@@ -139,180 +139,138 @@ const MascotaFoca = React.memo(() => {
         {/* Barriguita - Mancha clara */}
         <ellipse
           cx="100"
-          cy="165"
-          rx="38"
-          ry="55"
+          cy="170"
+          rx="36"
+          ry="52"
           fill="#FFFACD"
           opacity="0.6"
         />
 
-        {/* Cabeza - Forma más redonda y natural de foca */}
-        <ellipse
+        {/* Cabeza GRANDE - Tipo burbuja */}
+        <circle
           cx="100"
-          cy="65"
-          rx="56"
-          ry="58"
+          cy="80"
+          r="60"
           fill="url(#bodyGradient)"
           stroke="#5D4037"
           strokeWidth="3"
         />
 
-        {/* Oreja izquierda - En forma de foca, redondeada */}
+        {/* Hocico/Nariz GRANDE y prominente - Característica principal de foca */}
         <ellipse
-          cx="35"
-          cy="35"
-          rx="18"
-          ry="28"
-          fill="url(#bodyGradient)"
+          cx="100"
+          cy="95"
+          rx="28"
+          ry="32"
+          fill="#E0D5C7"
           stroke="#5D4037"
           strokeWidth="2.5"
-          transform="rotate(-30 35 35)"
-        />
-        {/* Interior oreja izquierda */}
-        <ellipse
-          cx="37"
-          cy="38"
-          rx="10"
-          ry="18"
-          fill="#FFE4E1"
-          opacity="0.8"
         />
 
-        {/* Oreja derecha - En forma de foca, redondeada */}
+        {/* Nariz/Trufa - El punto focal */}
         <ellipse
-          cx="165"
-          cy="35"
-          rx="18"
-          ry="28"
-          fill="url(#bodyGradient)"
-          stroke="#5D4037"
-          strokeWidth="2.5"
-          transform="rotate(30 165 35)"
-        />
-        {/* Interior oreja derecha */}
-        <ellipse
-          cx="163"
-          cy="38"
-          rx="10"
-          ry="18"
-          fill="#FFE4E1"
-          opacity="0.8"
+          cx="100"
+          cy="92"
+          rx="12"
+          ry="14"
+          fill="#4A3835"
+          stroke="#3D2620"
+          strokeWidth="1.5"
         />
 
-        {/* Aleta frontal izquierda - Brazo para el punch */}
+        {/* Orificio nasal izquierdo */}
+        <circle cx="95" cy="90" r="2" fill="#2D1F1A" />
+        {/* Orificio nasal derecho */}
+        <circle cx="105" cy="90" r="2" fill="#2D1F1A" />
+
+        {/* Mejillas rosadas grandes */}
+        <circle
+          cx="25"
+          cy="80"
+          r="18"
+          fill="url(#cheekGradient)"
+          opacity="0.75"
+        />
+        <circle
+          cx="175"
+          cy="80"
+          r="18"
+          fill="url(#cheekGradient)"
+          opacity="0.75"
+        />
+
+        {/* Orejas pequeñas (tipo agujeros de foca) */}
         <ellipse
           cx="50"
-          cy="160"
-          rx="16"
-          ry="32"
-          fill="url(#bodyGradient)"
+          cy="35"
+          rx="8"
+          ry="12"
+          fill="#B0D4E3"
           stroke="#5D4037"
-          strokeWidth="2"
-          transform="rotate(-20 50 160)"
+          strokeWidth="1.5"
         />
-
-        {/* Aleta frontal derecha - Brazo para el punch */}
         <ellipse
           cx="150"
-          cy="160"
-          rx="16"
-          ry="32"
-          fill="url(#bodyGradient)"
+          cy="35"
+          rx="8"
+          ry="12"
+          fill="#B0D4E3"
           stroke="#5D4037"
-          strokeWidth="2"
-          transform="rotate(20 150 160)"
+          strokeWidth="1.5"
         />
 
-        {/* Mejilla izquierda - Grande y rosada */}
+        {/* Ojos - Medianos en proporción a la cabeza grande */}
         <circle
-          cx="20"
-          cy="75"
-          r="16"
-          fill="url(#cheekGradient)"
-          opacity="0.75"
-        />
-
-        {/* Mejilla derecha - Grande y rosada */}
-        <circle
-          cx="180"
-          cy="75"
-          r="16"
-          fill="url(#cheekGradient)"
-          opacity="0.75"
-        />
-
-        {/* Ojo izquierdo - Muy grande y expresivo */}
-        <circle
-          cx="68"
-          cy="52"
-          r="12"
+          cx="70"
+          cy="65"
+          r="9"
           fill="#1a1a1a"
           stroke="#0a0a0a"
           strokeWidth="1"
         />
-        {/* Brillo grande en ojo izquierdo */}
-        <circle cx="72" cy="47" r="4.5" fill="white" opacity="0.95" />
-        {/* Reflejo pequeño */}
-        <circle cx="75" cy="50" r="2" fill="white" opacity="0.6" />
+        {/* Brillo ojo izquierdo */}
+        <circle cx="73" cy="62" r="3.5" fill="white" opacity="0.95" />
 
-        {/* Ojo derecho - Muy grande y expresivo */}
         <circle
-          cx="132"
-          cy="52"
-          r="12"
+          cx="130"
+          cy="65"
+          r="9"
           fill="#1a1a1a"
           stroke="#0a0a0a"
           strokeWidth="1"
         />
-        {/* Brillo grande en ojo derecho */}
-        <circle cx="136" cy="47" r="4.5" fill="white" opacity="0.95" />
-        {/* Reflejo pequeño */}
-        <circle cx="139" cy="50" r="2" fill="white" opacity="0.6" />
+        {/* Brillo ojo derecho */}
+        <circle cx="133" cy="62" r="3.5" fill="white" opacity="0.95" />
 
         {/* Párpados - Cambian con expresión happy */}
         {isHappy ? (
           <>
-            {/* Párpado izquierdo feliz (semicírculo) */}
+            {/* Párpado izquierdo feliz */}
             <path
-              d="M 62 55 Q 70 62 78 55"
+              d="M 62 65 Q 70 72 78 65"
               stroke={MASCOTA_COLORS.OUTLINE}
-              strokeWidth="2.5"
+              strokeWidth="2"
               fill="none"
               strokeLinecap="round"
             />
             {/* Párpado derecho feliz */}
             <path
-              d="M 122 55 Q 130 62 138 55"
+              d="M 122 65 Q 130 72 138 65"
               stroke={MASCOTA_COLORS.OUTLINE}
-              strokeWidth="2.5"
+              strokeWidth="2"
               fill="none"
               strokeLinecap="round"
             />
           </>
         ) : null}
 
-        {/* Nariz de trufa - Grande y realista */}
-        <ellipse
-          cx="100"
-          cy="85"
-          rx="10"
-          ry="12"
-          fill="#4A2F2A"
-          stroke="#3D2620"
-          strokeWidth="1.5"
-        />
-        {/* Orificio nasal izquierdo */}
-        <circle cx="96" cy="83" r="2.5" fill="#2D1F1A" />
-        {/* Orificio nasal derecho */}
-        <circle cx="104" cy="83" r="2.5" fill="#2D1F1A" />
-
         {/* Boca - Cambia con expresión happy */}
         {isHappy ? (
-          // Sonrisa feliz grande (arco)
+          // Sonrisa feliz (arco grande)
           <path
-            d="M 80 92 Q 100 108 120 92"
+            d="M 80 105 Q 100 118 120 105"
             stroke={MASCOTA_COLORS.MOUTH}
-            strokeWidth="3"
+            strokeWidth="2.5"
             fill="none"
             strokeLinecap="round"
           />
@@ -320,78 +278,43 @@ const MascotaFoca = React.memo(() => {
           // Boca neutral (línea pequeña)
           <line
             x1="85"
-            y1="92"
+            y1="105"
             x2="115"
-            y2="92"
+            y2="105"
             stroke={MASCOTA_COLORS.MOUTH}
-            strokeWidth="2.5"
+            strokeWidth="2"
             strokeLinecap="round"
           />
         )}
 
-        {/* Bigotes izquierdo */}
-        <line
-          x1="50"
-          y1="78"
-          x2="20"
-          y2="72"
-          stroke={MASCOTA_COLORS.OUTLINE}
+        {/* Aleta frontal izquierda - Para punch */}
+        <ellipse
+          cx="45"
+          cy="165"
+          rx="14"
+          ry="30"
+          fill="url(#bodyGradient)"
+          stroke="#5D4037"
           strokeWidth="2"
-          strokeLinecap="round"
-        />
-        <line
-          x1="50"
-          y1="85"
-          x2="18"
-          y2="95"
-          stroke={MASCOTA_COLORS.OUTLINE}
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-        <line
-          x1="50"
-          y1="92"
-          x2="20"
-          y2="105"
-          stroke={MASCOTA_COLORS.OUTLINE}
-          strokeWidth="2"
-          strokeLinecap="round"
+          transform="rotate(-15 45 165)"
         />
 
-        {/* Bigotes derecho */}
-        <line
-          x1="150"
-          y1="78"
-          x2="180"
-          y2="72"
-          stroke={MASCOTA_COLORS.OUTLINE}
+        {/* Aleta frontal derecha - Para punch */}
+        <ellipse
+          cx="155"
+          cy="165"
+          rx="14"
+          ry="30"
+          fill="url(#bodyGradient)"
+          stroke="#5D4037"
           strokeWidth="2"
-          strokeLinecap="round"
-        />
-        <line
-          x1="150"
-          y1="85"
-          x2="182"
-          y2="95"
-          stroke={MASCOTA_COLORS.OUTLINE}
-          strokeWidth="2"
-          strokeLinecap="round"
-        />
-        <line
-          x1="150"
-          y1="92"
-          x2="180"
-          y2="105"
-          stroke={MASCOTA_COLORS.OUTLINE}
-          strokeWidth="2"
-          strokeLinecap="round"
+          transform="rotate(15 155 165)"
         />
 
-        {/* Manchitas decorativas en el cuerpo */}
-        <circle cx="75" cy="130" r="6" fill="#B0D4E3" opacity="0.5" />
-        <circle cx="125" cy="145" r="5" fill="#B0D4E3" opacity="0.5" />
-        <circle cx="90" cy="200" r="4" fill="#B0D4E3" opacity="0.4" />
-        <circle cx="110" cy="210" r="4.5" fill="#B0D4E3" opacity="0.4" />
+        {/* Manchitas decorativas suaves */}
+        <circle cx="70" cy="140" r="5" fill="#B0D4E3" opacity="0.4" />
+        <circle cx="130" cy="150" r="4" fill="#B0D4E3" opacity="0.4" />
+        <circle cx="90" cy="190" r="4" fill="#B0D4E3" opacity="0.3" />
       </motion.svg>
 
       {/* Pulse/impacto animation durante punch */}

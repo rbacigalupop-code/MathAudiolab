@@ -39,17 +39,11 @@ export function MascotaFocaProvider({ children }) {
   const [showTooltip, setShowTooltip] = useState(false);
 
   /**
-   * Dispara la animación de punch múltiple de la foca
+   * Dispara la animación de punch de la foca
    * Se llama desde los modos cuando el usuario acierta
-   * Genera múltiples punches sincronizados con el sonido
    */
-  const triggerPunch = useCallback((count = 4) => {
-    // Trigger múltiples punches
-    for (let i = 0; i < count; i++) {
-      setTimeout(() => {
-        setPunchTrigger((prev) => prev + 1);
-      }, i * 180); // 180ms entre cada punch (sincronizado con playVictory)
-    }
+  const triggerPunch = useCallback(() => {
+    setPunchTrigger((prev) => prev + 1);
   }, []);
 
   const value = {
