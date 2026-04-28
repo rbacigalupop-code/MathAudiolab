@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ResponsiveBassNeck } from "../components/ResponsiveBassNeck";
 import { StatCard } from "../components/StatCard";
 import { InstrumentoIndicator } from "../components/InstrumentoIndicator";
+import { useMascotaContext } from "../contexts/MascotaFocaContext";
 import { notaPara, TC } from "../constants/music";
 
 export default function ModoBatalla({ audio, instrumento }) {
@@ -18,6 +19,9 @@ export default function ModoBatalla({ audio, instrumento }) {
   const timerRef = useRef(null);
   const inputRef = useRef(null);
   const timeoutsRef = useRef([]);
+
+  // Hook para mascota interactiva
+  const { triggerPunch } = useMascotaContext();
 
   const allTablas = [2, 3, 4, 5, 6, 7, 8, 9, 10];
 
@@ -89,6 +93,7 @@ export default function ModoBatalla({ audio, instrumento }) {
       const bonus = Math.ceil(timeLeft / 4);
       setEstado("correcto");
       setScore((s) => s + 1 + bonus);
+      triggerPunch(); // Animar la mascota
       const nota = notaPara(tabla, factor);
       setAN(nota.t);
 

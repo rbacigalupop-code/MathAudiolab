@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import * as Tone from "tone";
 import { ResponsiveBassNeck } from "../components/ResponsiveBassNeck";
+import { useMascotaContext } from "../contexts/MascotaFocaContext";
 import { notaPara, TC } from "../constants/music";
 
 export default function ModoTabla({ tabla, setTabla, audio, instrumento }) {
@@ -10,6 +11,9 @@ export default function ModoTabla({ tabla, setTabla, audio, instrumento }) {
   const [an, setAN] = useState(null);
   const timeoutsRef = useRef([]);
   const c = TC[tabla];
+
+  // Hook para mascota interactiva
+  const { triggerPunch } = useMascotaContext();
 
   const playTable = useCallback(async () => {
     const s = await audio.getSamplerSync(instrumento);
@@ -39,6 +43,7 @@ export default function ModoTabla({ tabla, setTabla, audio, instrumento }) {
       setPlaying(false);
       setHL(-1);
       setAN(null);
+      triggerPunch(); // Animar la mascota como recompensa
     }, totalMs);
     timeoutsRef.current.push(idEnd);
   }, [tabla, audio, instrumento]);

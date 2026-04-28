@@ -4,6 +4,7 @@ import * as Tone from "tone";
 import { ResponsiveBassNeck } from "../components/ResponsiveBassNeck";
 import { StatCard } from "../components/StatCard";
 import { InstrumentoIndicator } from "../components/InstrumentoIndicator";
+import { useMascotaContext } from "../contexts/MascotaFocaContext";
 import { notaPara, SOL } from "../constants/music";
 
 export default function ModoEscuchar({ audio, instrumento }) {
@@ -16,6 +17,9 @@ export default function ModoEscuchar({ audio, instrumento }) {
   const [intentos, setIntentos] = useState(0);
   const [an, setAN] = useState(null);
   const timeoutsRef = useRef([]);
+
+  // Hook para mascota interactiva
+  const { triggerPunch } = useMascotaContext();
 
   useEffect(() => {
     return () => timeoutsRef.current.forEach(clearTimeout);
@@ -82,6 +86,7 @@ export default function ModoEscuchar({ audio, instrumento }) {
       if (v === correct) {
         setEstado("correcto");
         setScore((s) => s + 1);
+        triggerPunch(); // Animar la mascota
         await audio.playVictory(instrumento);
       } else {
         setEstado("incorrecto");

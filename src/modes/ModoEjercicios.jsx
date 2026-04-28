@@ -5,6 +5,7 @@ import { DynamicFretboard } from "../components/DynamicFretboard";
 import { StatCard } from "../components/StatCard";
 import { LessonPanel } from "../components/LessonPanel";
 import { useWeightedSampling } from "../hooks/useWeightedSampling";
+import { useMascotaContext } from "../contexts/MascotaFocaContext";
 import { notaPara, TC, NIVELES, ACIERTOS_PARA_SUBIR, SOL } from "../constants/music";
 
 export default function ModoEjercicios({ store, setStore, audio, instrumento, setRockActive }) {
@@ -26,6 +27,9 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
 
   // Hook para muestreo ponderado (70% weak points, 30% nuevo)
   const { getWeightedProblem, recordAttempt } = useWeightedSampling(store);
+
+  // Hook para mascota interactiva
+  const { triggerPunch } = useMascotaContext();
 
   // Cleanup
   useEffect(() => {
@@ -115,6 +119,7 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
       const ns = streak + 1;
       setStreak(ns);
       sessionRef.current.correctas++;
+      triggerPunch(); // Animar la mascota
       const nota = notaPara(tabla, factor);
       setAN(nota.t);
 

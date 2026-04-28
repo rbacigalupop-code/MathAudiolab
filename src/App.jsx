@@ -18,6 +18,8 @@ import ModoDivision from "./modes/ModoDivision";
 import ModoEscuchar from "./modes/ModoEscuchar";
 import ModoBatalla from "./modes/ModoBatalla";
 import SamplesTest from "./components/SamplesTest";
+import { MascotaFocaProvider, useMascotaContext } from "./contexts/MascotaFocaContext";
+import MascotaFoca from "./components/MascotaFoca";
 
 const NIVELES = [
   { id: 1, label: "Nivel 1", desc: "Tablas 1–3", tablas: [1, 2, 3] },
@@ -44,6 +46,12 @@ function MainApp({ store, setStore }) {
   const [showDiagnostics, setShowDiagnostics] = useState(false);
 
   const audio = useAudioManager();
+  const { setCurrentMode } = useMascotaContext();
+
+  // Sincronizar modo con contexto de la mascota para tooltips
+  useEffect(() => {
+    setCurrentMode(modo);
+  }, [modo, setCurrentMode]);
 
   if (showDiagnostics) return <SamplesTest onBack={() => setShowDiagnostics(false)} />;
 
@@ -232,5 +240,10 @@ export default function App() {
   const { store, updateStore } = useLocalStorage();
 
   if (!ready) return <SplashScreen onReady={() => setReady(true)} />;
-  return <MainApp store={store} setStore={updateStore} />;
+  return (
+    <MascotaFocaProvider>
+      <MainApp store={store} setStore={updateStore} />
+      <MascotaFoca />
+    </MascotaFocaProvider>
+  );
 }

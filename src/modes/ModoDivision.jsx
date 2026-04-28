@@ -5,6 +5,7 @@ import { DivisionTimeline } from "../components/DivisionTimeline";
 import { LessonPanel } from "../components/LessonPanel";
 import { InstrumentoIndicator } from "../components/InstrumentoIndicator";
 import { useWeightedSampling } from "../hooks/useWeightedSampling";
+import { useMascotaContext } from "../contexts/MascotaFocaContext";
 
 const ACIERTOS_PARA_SUBIR = 5;
 const NIVELES_DIVISION = [
@@ -45,6 +46,9 @@ export default function ModoDivision({ store, setStore, audio, instrumento, setR
 
   // Hook para muestreo ponderado (70% weak points, 30% nuevo)
   const { getWeightedProblem, recordAttempt } = useWeightedSampling(store);
+
+  // Hook para mascota interactiva
+  const { triggerPunch } = useMascotaContext();
 
   useEffect(() => {
     return () => timeoutsRef.current.forEach(clearTimeout);
@@ -115,6 +119,7 @@ export default function ModoDivision({ store, setStore, audio, instrumento, setR
       const ns = streak + 1;
       setStreak(ns);
       sessionRef.current.correctas++;
+      triggerPunch(); // Animar la mascota
 
       await audio.playDivisionSuccess(instrumento, divisor, respuestaEsperada);
 

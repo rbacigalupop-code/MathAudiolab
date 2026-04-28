@@ -5,6 +5,7 @@ import { StatCard } from "../components/StatCard";
 import { InstrumentoIndicator } from "../components/InstrumentoIndicator";
 import { LessonPanel } from "../components/LessonPanel";
 import { useWeightedSampling } from "../hooks/useWeightedSampling";
+import { useMascotaContext } from "../contexts/MascotaFocaContext";
 
 const POTENCIA_NIVELES = [
   { id: 1, label: "Nivel 1", desc: "Exponente 0–3", maxExp: 3 },
@@ -42,6 +43,9 @@ export default function ModoPotencias({ store, setStore, audio, instrumento, set
 
   // Hook para muestreo ponderado (70% weak points, 30% nuevo)
   const { getWeightedProblem, recordAttempt } = useWeightedSampling(store);
+
+  // Hook para mascota interactiva
+  const { triggerPunch } = useMascotaContext();
 
   useEffect(() => {
     return () => timeoutsRef.current.forEach(clearTimeout);
@@ -101,6 +105,7 @@ export default function ModoPotencias({ store, setStore, audio, instrumento, set
       setScore((s) => s + 1);
       const ns = streak + 1;
       setStreak(ns);
+      triggerPunch(); // Animar la mascota
       await playEscaleraOctavas(base, exp, audio, instrumento);
       setStore((prev) => {
         const next = {
