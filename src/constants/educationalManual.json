@@ -1,0 +1,92 @@
+{
+  "mcr": {
+    "band": "My Chemical Romance",
+    "genre": "Emo/Rock",
+    "country": "USA",
+    "concept": "Potencias (Powers)",
+    "conceptExplanation": "Como el build-up de un solo, cada nivel duplica la energía. Cada nota es 2ˣ más alta (en frecuencia) que la anterior.",
+    "keyBit": "Gerard Way usa escalas de potencia de 2 en sus solos de guitarra. Cuando ves 2³, imagina tres capas de guitarra, cada una duplicando el poder de la anterior.",
+    "exampleTrack": "Welcome to the Black Parade",
+    "bpm": 132,
+    "videoId": "ZXhIPtWfYl0",
+    "pedagogyTip": "Las potencias crecen EXPONENCIALMENTE. 2¹ = 2, 2² = 4, 2³ = 8. El número se multiplica por sí mismo cada vez que subes el exponente.",
+    "mascotaQuip": "🤘 ¡MCR! La música aumenta como 2ˣ - ¡exponencial, hermano!"
+  },
+
+  "bunkers": {
+    "band": "Los Bunkers",
+    "genre": "Rock Chileno",
+    "country": "Chile",
+    "concept": "División",
+    "conceptExplanation": "Divide el riff en partes iguales para que la batería no se pierda. 12 ÷ 3 significa repartir 12 notas en 3 grupos iguales de 4 notas.",
+    "keyBit": "Mauricio Basualto divide cada compás del bajo en 4 partes uniformes. La batería de Gonzalo Valenzuela los acompaña dividiendo el ritmo en secciones.",
+    "exampleTrack": "Ven Aquí",
+    "bpm": 95,
+    "pedagogyTip": "División es lo OPUESTO a multiplicación. Si 3 × 4 = 12, entonces 12 ÷ 3 = 4. La banda actúa como unidad dividida.",
+    "mascotaQuip": "🎵 Los Bunkers dividen el ritmo con precisión. ¡División = repartir partes iguales!"
+  },
+
+  "twice": {
+    "band": "Twice",
+    "genre": "K-Pop",
+    "country": "Corea del Sur",
+    "concept": "Multiplicación",
+    "conceptExplanation": "El baile se cuenta en 8, multiplica los pasos para completar la rutina. 3 × 4 = 12 significa 3 grupos de 4 movimientos.",
+    "keyBit": "Las choreografías de Twice son múltiplos de 8 (8, 16, 24, 32 movimientos). Cuando ves 5 × 7 = 35, imagina 5 integrantes haciendo 7 pasos cada una.",
+    "exampleTrack": "Fancy",
+    "bpm": 124,
+    "pedagogyTip": "Multiplicación es REPETICIÓN. 4 × 3 significa 4 grupos de 3 elementos. ¡La coreografía de Twice lo demuestra perfectamente!",
+    "mascotaQuip": "💃 ¡Twice! 9 integrantes × movimientos = coreografía perfecta. ¡Multiplicación en la vida real!"
+  },
+
+  "blackpink": {
+    "band": "Blackpink",
+    "genre": "K-Pop",
+    "country": "Corea del Sur",
+    "concept": "Multiplicación",
+    "conceptExplanation": "Energía extrema: 4 integrantes × talento infinito = poder global. Las matrices del baile muestran multiplicación visual.",
+    "keyBit": "Jisoo, Jennie, Rosé y Lisa tienen 4 estilos × 1 objetivo = 1 grupo invencible. Cada arreglo de baile multiplica el impacto emocional.",
+    "exampleTrack": "Shut Down",
+    "bpm": 108,
+    "pedagogyTip": "Multiplicación no es solo matemática, ¡es estrategia! 4 personas × coordinación = impacto global de Blackpink.",
+    "mascotaQuip": "🔥 Blackpink: 4 artistas × talento infinito = ¡explosión de multiplicación!"
+  },
+
+  "general": {
+    "sums": {
+      "concept": "Sumas",
+      "conceptExplanation": "Combinar cantidades. Si tienes 3 manzanas y agregas 4 más, tienes 7 en total.",
+      "keyBit": "Suma es el acto más básico de combinación. 3 + 4 = 7 es lo mismo que decir '3 cosas MÁS 4 cosas'.",
+      "pedagogyTip": "El orden NO importa en suma: 3 + 4 = 4 + 3 = 7. Es la Propiedad Conmutativa.",
+      "mascotaQuip": "➕ ¡Suma! Combina números y crecerás."
+    },
+    "subtractions": {
+      "concept": "Restas",
+      "conceptExplanation": "Quitar o encontrar la diferencia. Si tienes 7 manzanas y quitas 4, quedan 3.",
+      "keyBit": "Resta es lo OPUESTO a suma. Si 3 + 4 = 7, entonces 7 - 4 = 3. ¡Cierra el círculo!",
+      "pedagogyTip": "Cuando restes, asegúrate que el número grande es el PRIMERO: 7 - 4, no 4 - 7.",
+      "mascotaQuip": "➖ ¡Resta! Quita y descubre lo que queda."
+    },
+    "division": {
+      "concept": "División",
+      "conceptExplanation": "Repartir en grupos iguales. 12 ÷ 3 = 4 significa '12 elementos en 3 grupos de 4'.",
+      "keyBit": "División es lo OPUESTO a multiplicación. Si 3 × 4 = 12, entonces 12 ÷ 3 = 4.",
+      "pedagogyTip": "Siempre haz grupos IGUALES. No repartas 13 en 3 grupos, ¡eso deja residuo!",
+      "mascotaQuip": "➗ ¡División! Reparte equitativamente."
+    },
+    "fractions": {
+      "concept": "Fracciones",
+      "conceptExplanation": "Partes de un todo. 1/2 es una MITAD. 1/4 es un CUARTO. El número arriba es la PARTE, el de abajo es el TODO.",
+      "keyBit": "El DENOMINADOR (número de abajo) dice en cuántas partes está dividido el todo. El NUMERADOR (arriba) dice cuántas partes tienes.",
+      "pedagogyTip": "Para sumar fracciones: 1/4 + 2/4 = 3/4. Pero 1/4 + 1/3 requiere un denominador COMÚN (busca el MCM).",
+      "mascotaQuip": "🔀 ¡Fracciones! Divide el mundo en partes."
+    },
+    "powers": {
+      "concept": "Potencias",
+      "conceptExplanation": "Multiplicación repetida. 2³ significa 2 × 2 × 2 = 8. El número pequeño arriba (exponente) dice cuántas veces multiplicas.",
+      "keyBit": "2³ = 2 × 2 × 2 (tres factores de 2). El exponente CUENTA los factores, no la multiplicación final.",
+      "pedagogyTip": "Memoriza potencias de 2: 2¹=2, 2²=4, 2³=8, 2⁴=16, 2⁵=32, 2⁶=64, 2⁷=128, 2⁸=256, 2⁹=512, 2¹⁰=1024.",
+      "mascotaQuip": "⚡ ¡Potencias! Crece exponencialmente."
+    }
+  }
+}
