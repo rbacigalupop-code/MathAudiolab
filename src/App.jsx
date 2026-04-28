@@ -6,6 +6,8 @@ import { useAudioManager, INSTRUMENTOS } from "./hooks/useAudioManager";
 import { useLocalStorage } from "./hooks/useLocalStorage";
 import { ResponsiveCanvas } from "./components/ResponsiveCanvas";
 import { ProgressStats } from "./components/ProgressStats";
+import { InstrumentoSelector } from "./components/InstrumentoSelector";
+import { SettingsPanel } from "./components/SettingsPanel";
 import SplashScreen from "./components/SplashScreen";
 import LessonReader from "./components/LessonReader";
 import ModoTabla from "./modes/ModoTabla";
@@ -106,6 +108,7 @@ function MainApp({ store, setStore }) {
             >
               📚
             </button>
+            <SettingsPanel store={store} setStore={setStore} />
             <button
               onClick={() => setShowDiagnostics(true)}
               title="Verificar samples de audio"
@@ -131,31 +134,12 @@ function MainApp({ store, setStore }) {
         </div>
 
         {/* Instrumento selector */}
-        <div style={{ display: "flex", gap: 5, marginBottom: 10, background: "#1e293b", borderRadius: 12, padding: 4, flexWrap: "wrap" }}>
-          {Object.entries(INSTRUMENTOS).map(([id, cfg]) => (
-            <button
-              key={id}
-              onClick={() => cambiarInstrumento(id)}
-              disabled={reloading}
-              style={{
-                flex: "1 1 auto",
-                padding: "clamp(4px, 1vw, 6px) clamp(4px, 1.5vw, 8px)",
-                borderRadius: 8,
-                border: "none",
-                background: instrumento === id ? headerColor : "transparent",
-                color: instrumento === id ? "#fff" : "#94a3b8",
-                fontWeight: 700,
-                fontSize: "clamp(9px, 1.5vw, 11px)",
-                cursor: reloading ? "default" : "pointer",
-                transition: "all .15s",
-                minHeight: 32,
-                minWidth: "60px",
-              }}
-            >
-              {cfg.label}
-            </button>
-          ))}
-        </div>
+        <InstrumentoSelector
+          instrumento={instrumento}
+          onSelect={cambiarInstrumento}
+          audio={audio}
+          disabled={reloading}
+        />
 
         {/* Visualizer */}
         <ResponsiveCanvas rockModeActive={rockActive} />
