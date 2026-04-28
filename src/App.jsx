@@ -8,6 +8,7 @@ import { ResponsiveCanvas } from "./components/ResponsiveCanvas";
 import { ProgressStats } from "./components/ProgressStats";
 import { InstrumentoSelector } from "./components/InstrumentoSelector";
 import { SettingsPanel } from "./components/SettingsPanel";
+import { MediaPanel } from "./components/MediaPanel";
 import SplashScreen from "./components/SplashScreen";
 import LessonReader from "./components/LessonReader";
 import ModoTabla from "./modes/ModoTabla";
@@ -109,6 +110,7 @@ function MainApp({ store, setStore }) {
               📚
             </button>
             <SettingsPanel store={store} setStore={setStore} />
+            <MediaPanel mode={modo} />
             <button
               onClick={() => setShowDiagnostics(true)}
               title="Verificar samples de audio"
