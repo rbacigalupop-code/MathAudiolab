@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import * as Tone from "tone";
 import { DynamicFretboard } from "../components/DynamicFretboard";
 import { StatCard } from "../components/StatCard";
+import { LessonPanel } from "../components/LessonPanel";
 import { notaPara, TC, NIVELES, ACIERTOS_PARA_SUBIR, SOL } from "../constants/music";
 
 export default function ModoEjercicios({ store, setStore, audio, instrumento, setRockActive }) {
@@ -199,6 +200,8 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
           <StatCard key={l} label={l} value={v} color={c} />
         ))}
       </div>
+
+      <LessonPanel mode="multiplication" />
 
       <DynamicFretboard
         instrumento={instrumento}

@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import * as Tone from "tone";
 import { StatCard } from "../components/StatCard";
 import { InstrumentoIndicator } from "../components/InstrumentoIndicator";
+import { LessonPanel } from "../components/LessonPanel";
 
 const POTENCIA_NIVELES = [
   { id: 1, label: "Nivel 1", desc: "Exponente 0–3", maxExp: 3 },
@@ -151,6 +152,8 @@ export default function ModoPotencias({ store, setStore, audio, instrumento, set
           <StatCard key={l} label={l} value={v} color={c} variant={rockActive ? "dark" : "default"} />
         ))}
       </div>
+
+      <LessonPanel mode="powers" />
 
       {exp !== null && (
         <motion.div

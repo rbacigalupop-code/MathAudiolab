@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { StatCard } from "../components/StatCard";
 import { DivisionTimeline } from "../components/DivisionTimeline";
+import { LessonPanel } from "../components/LessonPanel";
 
 const ACIERTOS_PARA_SUBIR = 5;
 const NIVELES_DIVISION = [
@@ -198,6 +199,8 @@ export default function ModoDivision({ store, setStore, audio, instrumento, setR
           <StatCard key={l} label={l} value={v} color={col} />
         ))}
       </div>
+
+      <LessonPanel mode="division" />
 
       <AnimatePresence>
         {levelUpMsg && (
