@@ -8,7 +8,7 @@ import { useWeightedSampling } from "../hooks/useWeightedSampling";
 import { useMascotaContext } from "../contexts/MascotaFocaContext";
 import { notaPara, TC, NIVELES, ACIERTOS_PARA_SUBIR, SOL } from "../constants/music";
 
-export default function ModoEjercicios({ store, setStore, audio, instrumento, setRockActive }) {
+export default function ModoEjercicios({ store, setStore, audio, instrumento, setRockActive, rockActive }) {
   const nivel = store.nivel;
   const cfg = NIVELES[nivel - 1];
   const [tabla, setTabla] = useState(cfg.tablas[0]);

@@ -205,17 +205,17 @@ function MainApp({ store, setStore }) {
             )}
             {modo === "ejercicios" && (
               <motion.div key="ejercicios" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                <ModoEjercicios store={store} setStore={setStore} audio={audio} instrumento={instrumento} setRockActive={setRockActive} />
+                <ModoEjercicios store={store} setStore={setStore} audio={audio} instrumento={instrumento} setRockActive={setRockActive} rockActive={rockActive} />
               </motion.div>
             )}
             {modo === "potencias" && (
               <motion.div key="potencias" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                <ModoPotencias store={store} setStore={setStore} audio={audio} instrumento={instrumento} setRockActive={setRockActive} />
+                <ModoPotencias store={store} setStore={setStore} audio={audio} instrumento={instrumento} setRockActive={setRockActive} rockActive={rockActive} />
               </motion.div>
             )}
             {modo === "division" && (
               <motion.div key="division" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                <ModoDivision store={store} setStore={setStore} audio={audio} instrumento={instrumento} setRockActive={setRockActive} />
+                <ModoDivision store={store} setStore={setStore} audio={audio} instrumento={instrumento} setRockActive={setRockActive} rockActive={rockActive} />
               </motion.div>
             )}
             {modo === "escuchar" && (

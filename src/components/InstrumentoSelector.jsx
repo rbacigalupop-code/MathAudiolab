@@ -110,14 +110,15 @@ export function InstrumentoSelector({ instrumento, onSelect, audio, disabled = f
               </AnimatePresence>
 
               {(isHovered || isSelected) && (
-                <motion.button
+                <motion.div
                   initial={{ opacity: 0, y: 4 }}
                   animate={{ opacity: 1, y: 0 }}
                   onClick={(e) => {
                     e.stopPropagation();
                     handlePreview(id);
                   }}
-                  disabled={disabled || isPlaying}
+                  role="button"
+                  tabIndex={disabled || isPlaying ? -1 : 0}
                   style={{
                     position: "absolute",
                     bottom: 4,
@@ -138,7 +139,7 @@ export function InstrumentoSelector({ instrumento, onSelect, audio, disabled = f
                   title="Escuchar preview"
                 >
                   {isPlaying ? "♪" : "▶"}
-                </motion.button>
+                </motion.div>
               )}
             </motion.button>
           );

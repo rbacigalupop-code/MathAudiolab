@@ -28,7 +28,7 @@ async function playEscaleraOctavas(base, exponente, audio, instrumento) {
   }
 }
 
-export default function ModoPotencias({ store, setStore, audio, instrumento, setRockActive }) {
+export default function ModoPotencias({ store, setStore, audio, instrumento, setRockActive, rockActive }) {
   const [nivel, setNivel] = useState(store.nivel || 1);
   const [base, setBase] = useState(2);
   const [exp, setExp] = useState(null);

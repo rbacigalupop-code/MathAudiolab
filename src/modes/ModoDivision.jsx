@@ -27,7 +27,7 @@ function generateDivisionProblem(nivel) {
   return { dividendo, divisor, respuestaEsperada: resultado };
 }
 
-export default function ModoDivision({ store, setStore, audio, instrumento, setRockActive }) {
+export default function ModoDivision({ store, setStore, audio, instrumento, setRockActive, rockActive }) {
   const nivel = store.nivel;
   const [dividendo, setDividendo] = useState(null);
   const [divisor, setDivisor] = useState(null);
