@@ -9,9 +9,12 @@ export function DivisionTimeline({ dividendo, divisor, estado, respuestaEsperada
   const itemsPerGrupo = respuestaEsperada || Math.floor(dividendo / divisor);
 
   // Selecciona visualización según tamaño
-  const isLarge = dividendo > 50;
+  // Horizontal para: muchos grupos O muchos items por grupo
+  const hasLargeGroups = divisor > 8;
+  const hasLargeItems = itemsPerGrupo > 15;
+  const usesHorizontal = hasLargeGroups || hasLargeItems || dividendo > 50;
 
-  if (isLarge) {
+  if (usesHorizontal) {
     return <DivisionTimelineHorizontal dividendo={dividendo} divisor={divisor} itemsPerGrupo={itemsPerGrupo} estado={estado} />;
   }
 
@@ -19,11 +22,21 @@ export function DivisionTimeline({ dividendo, divisor, estado, respuestaEsperada
 }
 
 function DivisionTimelineVertical({ dividendo, divisor, itemsPerGrupo, estado }) {
+  // Si hay muchos items por grupo, pueden no caber en móvil
+  const rowsTooManyItems = itemsPerGrupo > 10;
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      style={{ display: "flex", flexDirection: "column", gap: 8 }}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 8,
+        overflowX: rowsTooManyItems ? "auto" : "visible",
+        paddingBottom: rowsTooManyItems ? 4 : 0,
+        WebkitOverflowScrolling: "touch",
+      }}
     >
       {Array.from({ length: divisor }).map((_, grupoIdx) => {
         const color = DIVISION_COLORS[grupoIdx % DIVISION_COLORS.length];
@@ -51,11 +64,12 @@ function DivisionTimelineVertical({ dividendo, divisor, itemsPerGrupo, estado })
                 animate={estado === "correcto" ? { scale: 1.1 } : estado === "incorrecto" ? { rotate: [0, -10, 10, 0] } : { scale: 1 }}
                 transition={{ delay: (grupoIdx * itemsPerGrupo + itemIdx) * 0.02 }}
                 style={{
-                  width: "clamp(20px, 5vw, 32px)",
-                  aspectRatio: "1",
+                  width: "clamp(18px, 4.5vw, 28px)",
+                  height: "clamp(18px, 4.5vw, 28px)",
                   borderRadius: "4px",
                   background: color,
                   opacity: 0.8,
+                  flexShrink: 0,
                 }}
               />
             ))}
@@ -67,8 +81,8 @@ function DivisionTimelineVertical({ dividendo, divisor, itemsPerGrupo, estado })
 }
 
 function DivisionTimelineHorizontal({ dividendo, divisor, itemsPerGrupo, estado }) {
-  const containerWidth = 100; // porcentaje
-  const groupWidth = containerWidth / divisor;
+  // Responsive: si hay muchos grupos, hacer scroll horizontal
+  const tooManyGroups = divisor > 15;
 
   return (
     <motion.div
@@ -79,6 +93,9 @@ function DivisionTimelineHorizontal({ dividendo, divisor, itemsPerGrupo, estado 
         height: "clamp(60px, 12vw, 100px)",
         gap: 2,
         padding: "0 8px",
+        overflowX: tooManyGroups ? "auto" : "visible",
+        overflowY: "hidden",
+        WebkitOverflowScrolling: "touch",
       }}
     >
       {Array.from({ length: divisor }).map((_, grupoIdx) => {
@@ -111,10 +128,12 @@ function DivisionTimelineHorizontal({ dividendo, divisor, itemsPerGrupo, estado 
                 transition={{ delay: (grupoIdx * itemsPerGrupo + itemIdx) * 0.02 }}
                 style={{
                   width: "100%",
-                  height: "clamp(4px, 2vw, 8px)",
+                  height: "clamp(3px, 2vw, 8px)",
                   borderRadius: "2px",
                   background: color,
                   opacity: 0.85,
+                  minHeight: "3px",
+                  minWidth: "3px",
                 }}
               />
             ))}
