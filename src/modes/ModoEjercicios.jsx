@@ -5,12 +5,17 @@ import { DynamicFretboard } from "../components/DynamicFretboard";
 import { StatCard } from "../components/StatCard";
 import { LessonPanel } from "../components/LessonPanel";
 import { useWeightedSampling } from "../hooks/useWeightedSampling";
+import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useMascotaContext } from "../contexts/MascotaFocaContext";
 import { notaPara, TC, NIVELES, ACIERTOS_PARA_SUBIR, SOL } from "../constants/music";
 
 export default function ModoEjercicios({ store, setStore, audio, instrumento, setRockActive, rockActive }) {
-  const nivel = store.nivel;
-  const cfg = NIVELES[nivel - 1];
+  // Acceder a recordError del hook de storage
+  const { recordError } = useLocalStorage();
+
+  // Nivel seleccionable (permite elegir cualquier nivel)
+  const [nivelSeleccionado, setNivelSeleccionado] = useState(store.nivel);
+  const cfg = NIVELES[nivelSeleccionado - 1];
   const [tabla, setTabla] = useState(cfg.tablas[0]);
   const [factor, setFactor] = useState(null);
   const [input, setInput] = useState("");
@@ -51,7 +56,7 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
         return next;
       });
     };
-  }, [nivel, setStore]);
+  }, [nivelSeleccionado, setStore]);
 
   const rndTabla = useCallback(() => {
     const err = store.erroresPorTabla;
@@ -88,7 +93,7 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
 
   useEffect(() => {
     newQ();
-  }, [nivel]);
+  }, [nivelSeleccionado, newQ]);
 
   const check = useCallback(async () => {
     if (!input || factor === null) return;
@@ -99,7 +104,7 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
     setIntentos((i) => i + 1);
     sessionRef.current.intentos++;
 
-    // Registrar intento granular (tabla × factor) en weak_points
+    // Registrar intento granular (tabla × factor) en weak_points (OLD SYSTEM)
     let updatedStore = recordAttempt("multiplication", tabla, factor, isCorrect);
 
     // También actualizar tabla-level (para compatibilidad)
@@ -112,6 +117,9 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
     };
 
     setStore(updatedStore);
+
+    // Registrar en el nuevo errorLog (NEW SYSTEM - Pilar 1)
+    recordError(tabla.toString(), factor.toString(), isCorrect, "×");
 
     if (isCorrect) {
       setEstado("correcto");
@@ -200,11 +208,38 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
 
   return (
     <div>
-      {nivel < 5 && (
+      {/* Selector de Niveles */}
+      <div style={{ display: "flex", gap: 5, marginBottom: 10, overflowX: "auto", paddingBottom: 2 }}>
+        {NIVELES.map((n) => (
+          <button
+            key={n.id}
+            onClick={() => setNivelSeleccionado(n.id)}
+            style={{
+              flex: "0 0 auto",
+              padding: "clamp(4px, 1vw, 6px) clamp(8px, 1.5vw, 10px)",
+              borderRadius: 10,
+              border: nivelSeleccionado === n.id ? "2px solid #f97316" : "2px solid #334155",
+              background: nivelSeleccionado === n.id ? "#f97316" : "#1e293b",
+              color: nivelSeleccionado === n.id ? "#fff" : "#94a3b8",
+              fontWeight: 700,
+              fontSize: "clamp(8px, 1.5vw, 10px)",
+              cursor: "pointer",
+              transition: "all .15s",
+              minHeight: 40,
+              minWidth: 70,
+            }}
+          >
+            <div>{n.label}</div>
+            <div style={{ fontSize: "clamp(6px, 1vw, 8px)", opacity: 0.75 }}>{n.desc}</div>
+          </button>
+        ))}
+      </div>
+
+      {nivelSeleccionado < 5 && (
         <div style={{ marginBottom: 10 }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
             <span style={{ fontSize: "clamp(9px, 1.5vw, 10px)", color: "#64748b" }}>
-              Progreso → Nivel {nivel + 1}
+              Progreso → Nivel {nivelSeleccionado + 1}
             </span>
             <span style={{ fontSize: "clamp(9px, 1.5vw, 10px)", color: "#f97316" }}>
               {streak}/{ACIERTOS_PARA_SUBIR}
@@ -258,10 +293,10 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
             }}
           >
             <div style={{ fontSize: "clamp(18px, 5vw, 24px)", fontWeight: 900 }}>
-              🎸 ¡Subiste al Nivel {nivel}!
+              🎸 ¡Subiste al Nivel {store.nivel}!
             </div>
             <div style={{ fontSize: "clamp(11px, 2vw, 13px)", opacity: 0.85 }}>
-              Tablas: {NIVELES[nivel - 1].desc}
+              Tablas: {NIVELES[store.nivel - 1].desc}
             </div>
           </motion.div>
         )}

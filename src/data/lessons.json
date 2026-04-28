@@ -1,0 +1,120 @@
+{
+  "lecciones": [
+    {
+      "id": "mcr-potencias",
+      "titulo": "Potencias Progresivas con MCR",
+      "perfil": "cristobal",
+      "nivel": 3,
+      "banda": {
+        "nombre": "My Chemical Romance",
+        "imagen": "🤘",
+        "genero": "Emo/Rock Alternativo"
+      },
+      "cancion": {
+        "titulo": "Welcome to the Black Parade",
+        "videoId": "ZXhIPtWfYl0",
+        "bpm": 130,
+        "duracion": 312
+      },
+      "materia": "Potencias",
+      "conceptos": ["Exponentes", "Bases (2, 3, 5)", "Crecimiento exponencial"],
+      "pedagogia": "Las potencias son como las capas de un coro emo. 2³ significa que la base de guitarra se duplica en intensidad 3 veces. ¡Calcula la potencia para mantener la distorsión arriba!",
+      "tooltip_mascota": "Gerard Way también se equivocaba en los ensayos, ¡sigue intentando!",
+      "operacionesPorCompas": 2,
+      "compasesPorBloque": 8,
+      "rango": {
+        "minBase": 2,
+        "maxBase": 5,
+        "minExp": 1,
+        "maxExp": 5
+      }
+    },
+    {
+      "id": "bunkers-division",
+      "titulo": "Dividiendo el Tempo con Los Bunkers",
+      "perfil": "cristobal",
+      "nivel": 2,
+      "banda": {
+        "nombre": "Los Bunkers",
+        "imagen": "🎸",
+        "genero": "Rock Chileno"
+      },
+      "cancion": {
+        "titulo": "Ven Aquí",
+        "videoId": "PqAVK7BKnmE",
+        "bpm": 124,
+        "duracion": 240
+      },
+      "materia": "División",
+      "conceptos": ["División exacta", "Subdivisión rítmica", "Residuo"],
+      "pedagogia": "Toma un compás de 12 tiempos y divídelo en frases iguales para que entre el redoble de batería. 12 ÷ 3 = ? Mantén el ritmo para que el bajo no se apague.",
+      "tooltip_mascota": "Mauricio Basualto dividiría este compás en 4 partes perfectas. ¿Puedes hacerlo?",
+      "operacionesPorCompas": 1,
+      "compasesPorBloque": 4,
+      "rango": {
+        "minDividendo": 12,
+        "maxDividendo": 48,
+        "minDivisor": 2,
+        "maxDivisor": 8
+      }
+    },
+    {
+      "id": "kpop-multiplicacion",
+      "titulo": "Coreografía Matemática con K-Pop",
+      "perfil": "grace",
+      "nivel": 1,
+      "banda": {
+        "nombre": "Blackpink / Twice",
+        "imagen": "💃",
+        "genero": "K-Pop"
+      },
+      "cancion": {
+        "titulo": "How You Like That / Fancy",
+        "videoId": "rjnrHDXYUhU",
+        "bpm": 128,
+        "duracion": 183
+      },
+      "materia": "Multiplicación",
+      "conceptos": ["Tablas del 4 y 8", "Patrones rítmicos", "Repetición"],
+      "pedagogia": "Las rutinas de K-Pop se cuentan en bloques de 8 tiempos. Si repiten el bloque 4 veces, ¿cuántos tiempos bailaron en total? 4 × 8 = ? Mantén el ritmo para que la canción no se apague.",
+      "tooltip_mascota": "¡Ese cálculo fue tan exacto como la coreo de Twice!",
+      "operacionesPorCompas": 2,
+      "compasesPorBloque": 8,
+      "rango": {
+        "minFactor1": 2,
+        "maxFactor1": 10,
+        "minFactor2": 2,
+        "maxFactor2": 8
+      }
+    },
+    {
+      "id": "twice-tablas",
+      "titulo": "Beats de Twice: Multiplicación Coreografiada",
+      "perfil": "grace",
+      "nivel": 2,
+      "banda": {
+        "nombre": "Twice",
+        "imagen": "🎤",
+        "genero": "K-Pop"
+      },
+      "cancion": {
+        "titulo": "Fancy",
+        "videoId": "ShJ8M9qPN4Q",
+        "bpm": 124,
+        "duracion": 207
+      },
+      "materia": "Multiplicación",
+      "conceptos": ["Tablas del 6, 7 y 9", "Patrones complejos"],
+      "pedagogia": "Cada sección de la coreografía tiene 16 tiempos de música. ¿Cuántos tiempos en 7 secciones? Sigue el beat para que no se pare la danza.",
+      "tooltip_mascota": "Nayeon también necesita contar bien los pasos. ¡Tú también puedes!",
+      "operacionesPorCompas": 2,
+      "compasesPorBloque": 8,
+      "rango": {
+        "minFactor1": 5,
+        "maxFactor1": 10,
+        "minFactor2": 5,
+        "maxFactor2": 10
+      }
+    }
+  ]
+}

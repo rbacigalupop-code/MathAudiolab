@@ -5,6 +5,7 @@ import { StatCard } from "../components/StatCard";
 import { InstrumentoIndicator } from "../components/InstrumentoIndicator";
 import { LessonPanel } from "../components/LessonPanel";
 import { useWeightedSampling } from "../hooks/useWeightedSampling";
+import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useMascotaContext } from "../contexts/MascotaFocaContext";
 
 const POTENCIA_NIVELES = [
@@ -29,7 +30,7 @@ async function playEscaleraOctavas(base, exponente, audio, instrumento) {
 }
 
 export default function ModoPotencias({ store, setStore, audio, instrumento, setRockActive, rockActive }) {
-  const [nivel, setNivel] = useState(store.nivel || 1);
+  const [nivelSeleccionado, setNivelSeleccionado] = useState(store.nivel || 1);
   const [base, setBase] = useState(2);
   const [exp, setExp] = useState(null);
   const [input, setInput] = useState("");
@@ -39,10 +40,13 @@ export default function ModoPotencias({ store, setStore, audio, instrumento, set
   const [intentos, setIntentos] = useState(0);
   const inputRef = useRef(null);
   const timeoutsRef = useRef([]);
-  const cfg = POTENCIA_NIVELES[nivel - 1];
+  const cfg = POTENCIA_NIVELES[nivelSeleccionado - 1];
 
   // Hook para muestreo ponderado (70% weak points, 30% nuevo)
   const { getWeightedProblem, recordAttempt } = useWeightedSampling(store);
+
+  // Acceder a recordError del hook de storage
+  const { recordError } = useLocalStorage();
 
   // Hook para mascota interactiva
   const { triggerPunch } = useMascotaContext();
@@ -97,8 +101,11 @@ export default function ModoPotencias({ store, setStore, audio, instrumento, set
 
     setIntentos((i) => i + 1);
 
-    // Registrar intento granular (base ^ exponente) en weak_points
+    // Registrar intento granular (base ^ exponente) en weak_points (OLD SYSTEM)
     const updatedStoreFromRecord = recordAttempt("powers", base, exp, isCorrect);
+
+    // Registrar en el nuevo errorLog (NEW SYSTEM - Pilar 1)
+    recordError(base.toString(), exp.toString(), isCorrect, "^");
 
     if (isCorrect) {
       setEstado("correcto");
@@ -148,14 +155,14 @@ export default function ModoPotencias({ store, setStore, audio, instrumento, set
         {POTENCIA_NIVELES.map((n) => (
           <button
             key={n.id}
-            onClick={() => setNivel(n.id)}
+            onClick={() => setNivelSeleccionado(n.id)}
             style={{
               flex: "0 0 auto",
               padding: "clamp(4px, 1vw, 6px) clamp(8px, 1.5vw, 10px)",
               borderRadius: 10,
-              border: nivel === n.id ? "2px solid #f97316" : "2px solid #334155",
-              background: nivel === n.id ? "#f97316" : "#1e293b",
-              color: nivel === n.id ? "#fff" : "#94a3b8",
+              border: nivelSeleccionado === n.id ? "2px solid #f97316" : "2px solid #334155",
+              background: nivelSeleccionado === n.id ? "#f97316" : "#1e293b",
+              color: nivelSeleccionado === n.id ? "#fff" : "#94a3b8",
               fontWeight: 700,
               fontSize: "clamp(8px, 1.5vw, 10px)",
               cursor: "pointer",
@@ -169,6 +176,25 @@ export default function ModoPotencias({ store, setStore, audio, instrumento, set
           </button>
         ))}
       </div>
+
+      {nivelSeleccionado < 5 && (
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+            <span style={{ fontSize: "clamp(9px, 1.5vw, 10px)", color: "#64748b" }}>
+              Progreso → Nivel {nivelSeleccionado + 1}
+            </span>
+            <span style={{ fontSize: "clamp(9px, 1.5vw, 10px)", color: "#f97316" }}>
+              {streak}/{5}
+            </span>
+          </div>
+          <div style={{ height: 6, background: "#1e293b", borderRadius: 3, overflow: "hidden" }}>
+            <motion.div
+              animate={{ width: `${Math.min((streak / 5) * 100, 100)}%` }}
+              style={{ height: "100%", background: "#f97316", borderRadius: 3 }}
+            />
+          </div>
+        </div>
+      )}
 
       <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
         {[

@@ -9,17 +9,23 @@ import { ProgressStats } from "./components/ProgressStats";
 import { InstrumentoSelector } from "./components/InstrumentoSelector";
 import { SettingsPanel } from "./components/SettingsPanel";
 import { MediaPanel } from "./components/MediaPanel";
+import { LessonSelector } from "./components/LessonSelector";
 import SplashScreen from "./components/SplashScreen";
 import LessonReader from "./components/LessonReader";
 import ModoTabla from "./modes/ModoTabla";
 import ModoEjercicios from "./modes/ModoEjercicios";
+import ModoSumas from "./modes/ModoSumas";
+import ModoRestas from "./modes/ModoRestas";
 import ModoPotencias from "./modes/ModoPotencias";
 import ModoDivision from "./modes/ModoDivision";
+import ModoFracciones from "./modes/ModoFracciones";
 import ModoEscuchar from "./modes/ModoEscuchar";
 import ModoBatalla from "./modes/ModoBatalla";
+import ModoLecciones from "./modes/ModoLecciones";
 import SamplesTest from "./components/SamplesTest";
 import { MascotaFocaProvider, useMascotaContext } from "./contexts/MascotaFocaContext";
 import MascotaFoca from "./components/MascotaFoca";
+import lessonesData from "./data/lessons.json";
 
 const NIVELES = [
   { id: 1, label: "Nivel 1", desc: "Tablas 1–3", tablas: [1, 2, 3] },
@@ -32,21 +38,28 @@ const NIVELES = [
 const MODOS = [
   { id: "tabla", label: "📖 Tabla" },
   { id: "ejercicios", label: "✏️ Multiplicar" },
+  { id: "sumas", label: "➕ Sumas" },
+  { id: "restas", label: "➖ Restas" },
   { id: "potencias", label: "⚡ Potencias" },
   { id: "division", label: "➗ División" },
+  { id: "fracciones", label: "🔀 Fracciones" },
   { id: "escuchar", label: "👂 Escuchar" },
   { id: "batalla", label: "⚔️ Batalla" },
 ];
 
-function MainApp({ store, setStore }) {
+function MainApp({ store, setStore, profile, switchProfile }) {
   const [modo, setModo] = useState("ejercicios");
   const [instrumento, setInstrumento] = useState("piano");
   const [reloading, setReloading] = useState(false);
   const [rockActive, setRockActive] = useState(false);
   const [showDiagnostics, setShowDiagnostics] = useState(false);
+  const [leccionSeleccionada, setLeccionSeleccionada] = useState(null);
 
   const audio = useAudioManager();
   const { setCurrentMode } = useMascotaContext();
+
+  // Filtrar lecciones por perfil del usuario
+  const leccionesDisponibles = lessonesData.lecciones.filter((l) => l.perfil === profile);
 
   // Sincronizar modo con contexto de la mascota para tooltips
   useEffect(() => {
@@ -101,11 +114,14 @@ function MainApp({ store, setStore }) {
             </p>
           </div>
           <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-            <button
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setModo("lecciones")}
+              title="Lecciones Inmersivas"
               style={{
-                background: "#1e293b",
+                background: modo === "lecciones" ? "#f97316" : "#1e293b",
                 border: "1.5px solid #334155",
-                color: "#94a3b8",
+                color: modo === "lecciones" ? "#fff" : "#94a3b8",
                 borderRadius: 10,
                 padding: "8px 8px",
                 fontWeight: 700,
@@ -113,11 +129,18 @@ function MainApp({ store, setStore }) {
                 cursor: "pointer",
                 minHeight: 40,
                 minWidth: 40,
+                transition: "all .2s",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = "#f97316";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = "#334155";
               }}
             >
               📚
-            </button>
-            <SettingsPanel store={store} setStore={setStore} />
+            </motion.button>
+            <SettingsPanel store={store} setStore={setStore} profile={profile} switchProfile={switchProfile} />
             <MediaPanel mode={modo} />
             <button
               onClick={() => setShowDiagnostics(true)}
@@ -195,6 +218,37 @@ function MainApp({ store, setStore }) {
           ))}
         </div>
 
+        {/* Mostrar ModoLecciones si hay una lección seleccionada */}
+        {leccionSeleccionada && (
+          <AnimatePresence mode="wait">
+            <motion.div key="leccion" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <button
+                onClick={() => setLeccionSeleccionada(null)}
+                style={{
+                  marginBottom: 12,
+                  padding: "8px 12px",
+                  borderRadius: 8,
+                  border: "1px solid #334155",
+                  background: "#1e293b",
+                  color: "#94a3b8",
+                  fontWeight: 700,
+                  fontSize: "12px",
+                  cursor: "pointer",
+                }}
+              >
+                ← Volver a Lecciones
+              </button>
+              <ModoLecciones
+                lessonData={leccionSeleccionada}
+                store={store}
+                setStore={setStore}
+                audio={audio}
+                setRockActive={setRockActive}
+              />
+            </motion.div>
+          </AnimatePresence>
+        )}
+
         {/* Game modes */}
         <div style={{ marginTop: 12 }}>
           <AnimatePresence mode="wait">
@@ -208,6 +262,16 @@ function MainApp({ store, setStore }) {
                 <ModoEjercicios store={store} setStore={setStore} audio={audio} instrumento={instrumento} setRockActive={setRockActive} rockActive={rockActive} />
               </motion.div>
             )}
+            {modo === "sumas" && (
+              <motion.div key="sumas" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <ModoSumas store={store} setStore={setStore} audio={audio} instrumento={instrumento} setRockActive={setRockActive} rockActive={rockActive} />
+              </motion.div>
+            )}
+            {modo === "restas" && (
+              <motion.div key="restas" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <ModoRestas store={store} setStore={setStore} audio={audio} instrumento={instrumento} setRockActive={setRockActive} rockActive={rockActive} />
+              </motion.div>
+            )}
             {modo === "potencias" && (
               <motion.div key="potencias" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                 <ModoPotencias store={store} setStore={setStore} audio={audio} instrumento={instrumento} setRockActive={setRockActive} rockActive={rockActive} />
@@ -218,9 +282,23 @@ function MainApp({ store, setStore }) {
                 <ModoDivision store={store} setStore={setStore} audio={audio} instrumento={instrumento} setRockActive={setRockActive} rockActive={rockActive} />
               </motion.div>
             )}
+            {modo === "fracciones" && (
+              <motion.div key="fracciones" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <ModoFracciones store={store} setStore={setStore} audio={audio} instrumento={instrumento} setRockActive={setRockActive} rockActive={rockActive} />
+              </motion.div>
+            )}
             {modo === "escuchar" && (
               <motion.div key="escuchar" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                 <ModoEscuchar audio={audio} instrumento={instrumento} />
+              </motion.div>
+            )}
+            {modo === "lecciones" && (
+              <motion.div key="lecciones" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <LessonSelector
+                  lecciones={leccionesDisponibles}
+                  onSelect={setLeccionSeleccionada}
+                  profile={profile}
+                />
               </motion.div>
             )}
             {modo === "batalla" && (
@@ -237,12 +315,12 @@ function MainApp({ store, setStore }) {
 
 export default function App() {
   const [ready, setReady] = useState(false);
-  const { store, updateStore } = useLocalStorage();
+  const { store, updateStore, profile, switchProfile } = useLocalStorage();
 
   if (!ready) return <SplashScreen onReady={() => setReady(true)} />;
   return (
     <MascotaFocaProvider>
-      <MainApp store={store} setStore={updateStore} />
+      <MainApp store={store} setStore={updateStore} profile={profile} switchProfile={switchProfile} />
       <MascotaFoca />
     </MascotaFocaProvider>
   );

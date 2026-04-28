@@ -41,7 +41,6 @@ export function MediaPanel({ mode = "ejercicios" }) {
   const [activeTab, setActiveTab] = useState("videos");
   const [selectedVideo, setSelectedVideo] = useState(0);
 
-  // Map app modes to media content modes
   const modeMap = {
     tabla: "multiplication",
     ejercicios: "multiplication",
@@ -91,6 +90,7 @@ export function MediaPanel({ mode = "ejercicios" }) {
       <AnimatePresence>
         {isOpen && (
           <>
+            {/* Overlay */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -103,28 +103,30 @@ export function MediaPanel({ mode = "ejercicios" }) {
                 right: 0,
                 bottom: 0,
                 background: "rgba(0,0,0,0.8)",
-                zIndex: 999,
+                zIndex: 1000,
               }}
             />
 
+            {/* Modal */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
               style={{
                 position: "fixed",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
+                top: "50vh",
+                left: "50vw",
+                marginLeft: "-300px",
+                marginTop: "-280px",
                 background: "#0f172a",
                 border: "2px solid #a855f7",
                 borderRadius: 16,
                 padding: "20px",
-                zIndex: 1000,
-                maxWidth: "95%",
-                width: "min(90vw, 600px)",
-                maxHeight: "90vh",
+                width: "600px",
+                maxHeight: "560px",
                 overflowY: "auto",
+                boxShadow: "0 20px 60px rgba(0,0,0,0.8)",
+                zIndex: 1001,
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
@@ -171,7 +173,6 @@ export function MediaPanel({ mode = "ejercicios" }) {
               {/* Videos Tab */}
               {activeTab === "videos" && (
                 <div>
-                  {/* YouTube Embed */}
                   <div style={{ marginBottom: 16, borderRadius: 10, overflow: "hidden" }}>
                     <iframe
                       width="100%"
@@ -185,7 +186,6 @@ export function MediaPanel({ mode = "ejercicios" }) {
                     />
                   </div>
 
-                  {/* Video List */}
                   <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                     {content.videos.map((video, idx) => (
                       <button
@@ -199,12 +199,12 @@ export function MediaPanel({ mode = "ejercicios" }) {
                           color: "#f1f5f9",
                           fontWeight: 700,
                           fontSize: "12px",
-                          cursor: "pointer",
                           textAlign: "left",
+                          cursor: "pointer",
                           transition: "all .2s",
                         }}
                       >
-                        {idx + 1}. {video.title}
+                        {selectedVideo === idx ? "▶ " : "○ "}{video.title}
                       </button>
                     ))}
                   </div>
@@ -213,44 +213,18 @@ export function MediaPanel({ mode = "ejercicios" }) {
 
               {/* Spotify Tab */}
               {activeTab === "spotify" && (
-                <div>
-                  <div style={{ marginBottom: 12, color: "#cbd5e1", fontSize: "12px" }}>
-                    🎵 Playlist recomendada para {content.title.toLowerCase()}
-                  </div>
-
-                  <div style={{ marginBottom: 12 }}>
-                    <iframe
-                      src={content.spotifyEmbed}
-                      width="100%"
-                      height="380"
-                      frameBorder="0"
-                      allowFullScreen=""
-                      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                      style={{ borderRadius: 12 }}
-                    />
-                  </div>
-
-                  <a
-                    href={content.spotify}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      display: "inline-block",
-                      padding: "10px 16px",
-                      borderRadius: 8,
-                      background: "#1DB954",
-                      color: "#fff",
-                      fontWeight: 700,
-                      fontSize: "12px",
-                      textDecoration: "none",
-                      cursor: "pointer",
-                      transition: "all .2s",
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = "#1ed760"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.background = "#1DB954"; }}
-                  >
-                    Abrir en Spotify →
-                  </a>
+                <div style={{ minHeight: 300, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <p style={{ color: "#64748b", textAlign: "center" }}>
+                    🎵 Abre Spotify en otra pestaña<br />
+                    <a
+                      href={content.spotify}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: "#a855f7", textDecoration: "none" }}
+                    >
+                      → Ir a Playlist
+                    </a>
+                  </p>
                 </div>
               )}
             </motion.div>
