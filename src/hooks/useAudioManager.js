@@ -269,6 +269,58 @@ export function useAudioManager() {
     }
   }, []);
 
+  /**
+   * Set synchronized BPM for the Tone.Transport
+   * Allows audio playback to sync with external video BPM
+   * @param {number} bpm - Beats per minute (typically 60-180)
+   * @returns {number} Beats per second for reference
+   */
+  const setSyncedBPM = useCallback((bpm) => {
+    if (bpm < 40 || bpm > 240) {
+      console.warn(`[BPM] Invalid BPM value: ${bpm}, clamping to valid range`);
+      bpm = Math.max(40, Math.min(240, bpm));
+    }
+    try {
+      Tone.Transport.bpm.value = bpm;
+      return bpm / 60;  // Return beats per second
+    } catch (e) {
+      console.error("[BPM] Failed to set BPM:", e);
+      return bpm / 60;
+    }
+  }, []);
+
+  /**
+   * Calculate dynamic note step duration based on BPM and note value
+   * Used for rhythm-synchronized audio playback
+   * @param {number} bpm - Beats per minute
+   * @param {string} noteValue - Tone.js note value ("4n", "8n", "16n", "32n")
+   * @returns {number} Step duration in seconds
+   */
+  const calculateStep = useCallback((bpm, noteValue = "8n") => {
+    const beatDuration = 60 / bpm;  // Duration of one beat in seconds
+
+    // Standard subdivisions based on note value
+    const subdivisions = {
+      "1n": 1,      // Whole note (4 beats)
+      "2n": 2,      // Half note (2 beats)
+      "4n": 4,      // Quarter note (1 beat)
+      "8n": 8,      // Eighth note (1/2 beat)
+      "16n": 16,    // Sixteenth note (1/4 beat)
+      "32n": 32,    // Thirty-second note (1/8 beat)
+    };
+
+    const subdivisionFactor = subdivisions[noteValue] || 8;
+    return beatDuration / subdivisionFactor;
+  }, []);
+
+  /**
+   * Get the current BPM from Tone.Transport
+   * @returns {number} Current BPM value
+   */
+  const getSyncedBPM = useCallback(() => {
+    return Tone.Transport.bpm.value;
+  }, []);
+
   return {
     playBass, playVictory, playLevelUp, playError, playLoseLife, playDivisionSuccess, setRockMode,
     getRockModeActive: () => rockModeActive,
@@ -276,6 +328,9 @@ export function useAudioManager() {
     getUsingFallback: (instrumento) => instrumento ? usingFallback[instrumento] : Object.values(usingFallback).some(v => v),
     scheduleTimeout,
     cleanup,
+    setSyncedBPM,
+    calculateStep,
+    getSyncedBPM,
     Tone,
   };
 }

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { BAND_METADATA } from "../constants/bandMetadata";
 
 const MEDIA_CONTENT = {
   multiplication: {
@@ -36,10 +37,11 @@ const MEDIA_CONTENT = {
 
 const YOUTUBE_URL = (videoId) => `https://www.youtube.com/embed/${videoId}?rel=0`;
 
-export function MediaPanel({ mode = "ejercicios" }) {
+export function MediaPanel({ mode = "ejercicios", bandData = null, onBandSelect = null }) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("videos");
   const [selectedVideo, setSelectedVideo] = useState(0);
+  const [selectedBandId, setSelectedBandId] = useState(null);
 
   const modeMap = {
     tabla: "multiplication",
@@ -148,8 +150,8 @@ export function MediaPanel({ mode = "ejercicios" }) {
               </div>
 
               {/* Tabs */}
-              <div style={{ display: "flex", gap: 8, marginBottom: 16, borderBottom: "1px solid #334155", paddingBottom: 8 }}>
-                {["videos", "spotify"].map(tab => (
+              <div style={{ display: "flex", gap: 8, marginBottom: 16, borderBottom: "1px solid #334155", paddingBottom: 8, overflowX: "auto" }}>
+                {["videos", "bandas", "spotify"].map(tab => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
@@ -163,9 +165,10 @@ export function MediaPanel({ mode = "ejercicios" }) {
                       fontSize: "12px",
                       cursor: "pointer",
                       transition: "all .2s",
+                      whiteSpace: "nowrap",
                     }}
                   >
-                    {tab === "videos" ? "📹 Videos" : "🎵 Música"}
+                    {tab === "videos" ? "📹 Videos" : tab === "bandas" ? "🎸 Bandas" : "🎵 Música"}
                   </button>
                 ))}
               </div>
@@ -208,6 +211,56 @@ export function MediaPanel({ mode = "ejercicios" }) {
                       </button>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {/* Bandas Tab */}
+              {activeTab === "bandas" && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {Object.entries(BAND_METADATA).map(([bandId, band]) => (
+                    <button
+                      key={bandId}
+                      onClick={() => {
+                        setSelectedBandId(bandId);
+                        if (onBandSelect) {
+                          const track = band.tracks[0];
+                          onBandSelect(bandId, {
+                            name: band.name,
+                            bpm: track.bpm,
+                            concept: band.concept
+                          });
+                        }
+                      }}
+                      style={{
+                        padding: "12px",
+                        borderRadius: 8,
+                        border: selectedBandId === bandId ? "2px solid #06b6d4" : "1px solid #334155",
+                        background: selectedBandId === bandId ? "#06b6d41a" : "#1e293b",
+                        color: "#f1f5f9",
+                        fontWeight: 700,
+                        fontSize: "13px",
+                        textAlign: "left",
+                        cursor: "pointer",
+                        transition: "all .2s",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.borderColor = "#06b6d4";
+                      }}
+                      onMouseLeave={(e) => {
+                        if (selectedBandId !== bandId) {
+                          e.currentTarget.style.borderColor = "#334155";
+                        }
+                      }}
+                    >
+                      <div>{selectedBandId === bandId ? "▶ " : "○ "}{band.name}</div>
+                      <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: 4 }}>
+                        {band.genre} • {band.concept.charAt(0).toUpperCase() + band.concept.slice(1)}
+                      </div>
+                      <div style={{ fontSize: "11px", color: "#64748b", marginTop: 4 }}>
+                        {band.tracks.map(t => `${t.title} (${t.bpm} BPM)`).join(" • ")}
+                      </div>
+                    </button>
+                  ))}
                 </div>
               )}
 
