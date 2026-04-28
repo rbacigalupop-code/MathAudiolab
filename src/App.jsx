@@ -5,6 +5,7 @@ import * as Tone from "tone";
 import { useAudioManager, INSTRUMENTOS } from "./hooks/useAudioManager";
 import { useLocalStorage } from "./hooks/useLocalStorage";
 import { ResponsiveCanvas } from "./components/ResponsiveCanvas";
+import { ProgressStats } from "./components/ProgressStats";
 import SplashScreen from "./components/SplashScreen";
 import LessonReader from "./components/LessonReader";
 import ModoTabla from "./modes/ModoTabla";
@@ -158,6 +159,9 @@ function MainApp({ store, setStore }) {
 
         {/* Visualizer */}
         <ResponsiveCanvas rockModeActive={rockActive} />
+
+        {/* Progress Stats */}
+        <ProgressStats store={store} />
 
         {/* Modo tabs */}
         <div
