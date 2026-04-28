@@ -139,8 +139,13 @@ export default function ModoPotencias({ store, setStore, audio, instrumento, set
     } else {
       setEstado("incorrecto");
       setStreak(0);
-      setStore((prev) => ({ ...updatedStoreFromRecord, rachaGlobal: 0 }));
+      // Trigger error filter for sensory feedback
+      audio.triggerErrorFilter(500);
       await audio.playError(instrumento);
+      // Clear error filter after 800ms
+      const idClear = setTimeout(() => audio.clearErrorFilter(300), 800);
+      timeoutsRef.current.push(idClear);
+      setStore((prev) => ({ ...updatedStoreFromRecord, rachaGlobal: 0 }));
     }
   }, [input, exp, base, correcto, streak, audio, instrumento, setStore, setRockActive, recordAttempt]);
 

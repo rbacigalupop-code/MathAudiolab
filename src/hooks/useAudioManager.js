@@ -5,6 +5,7 @@ let samplerInstances = {};
 let samplerPromises = {};
 let usingFallback = {};
 let distortionNode = null;
+let errorFilterNode = null;
 let masterVolume = null;
 let rockModeActive = false;
 
@@ -111,8 +112,14 @@ function buildFallbackSynth() {
 function ensureMasterChain() {
   if (distortionNode) return;
   distortionNode = new Tone.Distortion({ distortion: 0, wet: 0 });
+  errorFilterNode = new Tone.Filter({
+    frequency: 5000,  // Start at normal frequency
+    type: "lowpass",
+    rolloff: -24
+  });
   masterVolume = new Tone.Volume(2); // Aumentar volumen general (+2dB)
-  distortionNode.connect(masterVolume);
+  distortionNode.connect(errorFilterNode);
+  errorFilterNode.connect(masterVolume);
   masterVolume.toDestination();
 }
 
@@ -283,6 +290,37 @@ export function useAudioManager() {
   }, []);
 
   /**
+   * Trigger error filter: Sweep frequency down to create "wrong answer" feedback
+   * Creates a low-pass filter effect that makes audio sound muddy/grave
+   * @param {number} durationMs - Duration of the error feedback in milliseconds (default 500ms)
+   */
+  const triggerErrorFilter = useCallback((durationMs = 500) => {
+    ensureMasterChain();
+    const sweepDuration = durationMs / 1000; // Convert to seconds
+    try {
+      // Sweep from 5000Hz down to 200Hz (creates muddy/wrong feeling)
+      errorFilterNode.frequency.rampTo(200, sweepDuration * 0.8);
+    } catch (e) {
+      console.warn("[Error Filter] Failed to trigger:", e);
+    }
+  }, []);
+
+  /**
+   * Clear error filter: Return to normal frequency
+   * @param {number} durationMs - Duration of recovery in milliseconds (default 300ms)
+   */
+  const clearErrorFilter = useCallback((durationMs = 300) => {
+    ensureMasterChain();
+    const sweepDuration = durationMs / 1000; // Convert to seconds
+    try {
+      // Sweep back up to 5000Hz (normal)
+      errorFilterNode.frequency.rampTo(5000, sweepDuration);
+    } catch (e) {
+      console.warn("[Error Filter] Failed to clear:", e);
+    }
+  }, []);
+
+  /**
    * Set synchronized BPM for the Tone.Transport
    * Allows audio playback to sync with external video BPM
    * @param {number} bpm - Beats per minute (typically 60-180)
@@ -354,6 +392,8 @@ export function useAudioManager() {
     setSyncedBPM,
     calculateStep,
     getSyncedBPM,
+    triggerErrorFilter,
+    clearErrorFilter,
     Tone,
   };
 }
