@@ -73,6 +73,7 @@ export default function ModoPotencias({ store, setStore, audio, instrumento, set
   }, [cfg.maxExp]);  // Only depend on cfg, NOT getWeightedProblem
 
   useEffect(() => {
+    console.log("[ModoPotencias] Calling newQ - dependencies changed", { nivelSeleccionado });
     newQ();
   }, [nivelSeleccionado, newQ]);
 
