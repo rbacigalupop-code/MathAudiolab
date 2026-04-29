@@ -35,20 +35,16 @@ export default function ModoRestas({ store, setStore, audio, instrumento, setRoc
   const inputRef = useRef(null);
   const timeoutsRef = useRef([]);
   const sessionRef = useRef({ correctas: 0, intentos: 0 });
-  // Ensure cfg is valid - use proper bounds checking
-  const safeLevelIndex = Math.max(0, Math.min(4, nivelSeleccionado - 1));
-  const cfg = NIVELES_RESTAS[safeLevelIndex];
-
-  if (!cfg) {
-    console.error("[ModoRestas] Config not found for nivel:", nivelSeleccionado);
-    return null;
-  }
-
-  const c = "#f59e0b"; // Ámbar para Restas
 
   const { getWeightedProblem, recordAttempt } = useWeightedSampling(store);
   const { recordError } = useLocalStorage();
   const { triggerPunch } = useMascotaContext();
+
+  // Ensure cfg is valid - use proper bounds checking (AFTER all hooks)
+  const safeLevelIndex = Math.max(0, Math.min(4, nivelSeleccionado - 1));
+  const cfg = NIVELES_RESTAS[safeLevelIndex];
+
+  const c = "#f59e0b"; // Ámbar para Restas
 
   useEffect(() => {
     return () => timeoutsRef.current.forEach(clearTimeout);

@@ -35,20 +35,16 @@ export default function ModoSumas({ store, setStore, audio, instrumento, setRock
   const inputRef = useRef(null);
   const timeoutsRef = useRef([]);
   const sessionRef = useRef({ correctas: 0, intentos: 0 });
-  // Ensure cfg is valid - use proper bounds checking
-  const safeLevelIndex = Math.max(0, Math.min(4, nivelSeleccionado - 1));
-  const cfg = NIVELES_SUMAS[safeLevelIndex];
-
-  if (!cfg) {
-    console.error("[ModoSumas] Config not found for nivel:", nivelSeleccionado);
-    return null;
-  }
-
-  const c = "#22c55e"; // Verde para Sumas
 
   const { getWeightedProblem, recordAttempt } = useWeightedSampling(store);
   const { recordError } = useLocalStorage();
   const { triggerPunch } = useMascotaContext();
+
+  // Ensure cfg is valid - use proper bounds checking (AFTER all hooks)
+  const safeLevelIndex = Math.max(0, Math.min(4, nivelSeleccionado - 1));
+  const cfg = NIVELES_SUMAS[safeLevelIndex];
+
+  const c = "#22c55e"; // Verde para Sumas
 
   useEffect(() => {
     return () => timeoutsRef.current.forEach(clearTimeout);

@@ -47,20 +47,16 @@ export default function ModoFracciones({ store, setStore, audio, instrumento, se
   const inputNumRef = useRef(null);
   const timeoutsRef = useRef([]);
   const sessionRef = useRef({ correctas: 0, intentos: 0 });
-  // Ensure cfg is valid - use proper bounds checking
-  const safeLevelIndex = Math.max(0, Math.min(4, nivelSeleccionado - 1));
-  const cfg = NIVELES_FRACCIONES[safeLevelIndex];
-
-  if (!cfg) {
-    console.error("[ModoFracciones] Config not found for nivel:", nivelSeleccionado);
-    return null;
-  }
-
-  const c = "#ec4899"; // Rosa para Fracciones
 
   const { getWeightedProblem, recordAttempt } = useWeightedSampling(store);
   const { recordError } = useLocalStorage();
   const { triggerPunch } = useMascotaContext();
+
+  // Ensure cfg is valid - use proper bounds checking (AFTER all hooks)
+  const safeLevelIndex = Math.max(0, Math.min(4, nivelSeleccionado - 1));
+  const cfg = NIVELES_FRACCIONES[safeLevelIndex];
+
+  const c = "#ec4899"; // Rosa para Fracciones
 
   useEffect(() => {
     return () => timeoutsRef.current.forEach(clearTimeout);
