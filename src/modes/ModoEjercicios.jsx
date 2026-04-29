@@ -44,14 +44,15 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
   const { triggerPunch, setCurrentBanda, updateHint, resetHints } = useMascotaContext();
 
   // Hook para pistas progresivas (10 segundos de espera antes de la primera pista)
-  const { currentHint, resetHints: resetHintsHook } = useProgressiveHints("ejercicios", null, 10000);
+  // TEMPORARILY DISABLED FOR DEBUGGING
+  // const { currentHint, resetHints: resetHintsHook } = useProgressiveHints("ejercicios", null, 10000);
 
   // Sincronizar el hint del hook con el contexto de mascota
-  useEffect(() => {
-    if (currentHint) {
-      updateHint(currentHint);
-    }
-  }, [currentHint, updateHint]);
+  // useEffect(() => {
+  //   if (currentHint) {
+  //     updateHint(currentHint);
+  //   }
+  // }, [currentHint, updateHint]);
 
   // Cleanup
   useEffect(() => {
@@ -160,7 +161,7 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
       sessionRef.current.correctas++;
       triggerPunch(); // Animar la mascota
       resetHints(); // Resetear pistas progresivas
-      resetHintsHook(); // Resetear el hook de pistas
+      // resetHintsHook(); // Resetear el hook de pistas - TEMPORARILY DISABLED
       const nota = notaPara(tabla, factor);
       setAN(nota.t);
 

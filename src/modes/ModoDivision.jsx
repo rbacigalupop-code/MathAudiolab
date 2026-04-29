@@ -63,14 +63,15 @@ export default function ModoDivision({ store, setStore, audio, instrumento, setR
   const { triggerPunch, setCurrentBanda, updateHint, resetHints } = useMascotaContext();
 
   // Hook para pistas progresivas (10 segundos de espera antes de la primera pista)
-  const { currentHint, resetHints: resetHintsHook } = useProgressiveHints("division", null, 10000);
+  // TEMPORARILY DISABLED FOR DEBUGGING
+  // const { currentHint, resetHints: resetHintsHook } = useProgressiveHints("division", null, 10000);
 
   // Sincronizar el hint del hook con el contexto de mascota
-  useEffect(() => {
-    if (currentHint) {
-      updateHint(currentHint);
-    }
-  }, [currentHint, updateHint]);
+  // useEffect(() => {
+  //   if (currentHint) {
+  //     updateHint(currentHint);
+  //   }
+  // }, [currentHint, updateHint]);
 
   useEffect(() => {
     return () => timeoutsRef.current.forEach(clearTimeout);
@@ -158,7 +159,7 @@ export default function ModoDivision({ store, setStore, audio, instrumento, setR
       sessionRef.current.correctas++;
       triggerPunch(); // Animar la mascota
       resetHints(); // Resetear pistas progresivas
-      resetHintsHook(); // Resetear el hook de pistas
+      // resetHintsHook(); // Resetear el hook de pistas - TEMPORARILY DISABLED
 
       await audio.playDivisionSuccess(instrumento, divisor, respuestaEsperada);
 
