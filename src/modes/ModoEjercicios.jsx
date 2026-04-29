@@ -18,7 +18,7 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
   const { recordError } = useLocalStorage();
 
   // Nivel seleccionable (permite elegir cualquier nivel)
-  const [nivelSeleccionado, setNivelSeleccionado] = useState(store.nivel);
+  const [nivelSeleccionado, setNivelSeleccionado] = useState(Math.max(1, Math.min(5, store.nivel || 1)));
   const [syncedBPM, setSyncedBPMLocal] = useState(DEFAULT_BPM_EJERCICIOS);
 
   const [tabla, setTabla] = useState(NIVELES[nivelSeleccionado - 1].tablas[0]);

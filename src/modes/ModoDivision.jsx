@@ -33,7 +33,7 @@ function generateDivisionProblem(nivel) {
 const DEFAULT_BPM_DIVISION = 120;
 
 export default function ModoDivision({ store, setStore, audio, instrumento, setRockActive, rockActive, bandData = null }) {
-  const [nivelSeleccionado, setNivelSeleccionado] = useState(store.nivel || 1);
+  const [nivelSeleccionado, setNivelSeleccionado] = useState(Math.max(1, Math.min(5, store.nivel || 1)));
   const [dividendo, setDividendo] = useState(null);
   const [divisor, setDivisor] = useState(null);
   const [respuestaEsperada, setRespuestaEsperada] = useState(null);
