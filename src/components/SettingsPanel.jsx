@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BandGuideModal } from "./BandGuideModal";
 import AudioLegendModal from "./AudioLegendModal";
+import { AnalyticsDashboard } from "./AnalyticsDashboard";
 
 const PROFILES = [
   { id: "cristobal", label: "👨 Cristóbal" },
@@ -12,6 +13,7 @@ export function SettingsPanel({ store, setStore, profile, switchProfile, zenMode
   const [isOpen, setIsOpen] = useState(false);
   const [showBandGuide, setShowBandGuide] = useState(false);
   const [showAudioLegend, setShowAudioLegend] = useState(false);
+  const [showAnalytics, setShowAnalytics] = useState(false);
 
   const settings = store.settings || { volumen: 0.7, bpm: 100 };
 
@@ -269,6 +271,32 @@ export function SettingsPanel({ store, setStore, profile, switchProfile, zenMode
                 🎵 Cómo Funcionan los Sonidos
               </button>
 
+              {/* Analytics Button */}
+              <button
+                onClick={() => setShowAnalytics(true)}
+                style={{
+                  width: "100%",
+                  padding: "10px",
+                  marginBottom: 8,
+                  borderRadius: 8,
+                  border: "1.5px solid #06b6d4",
+                  background: "#06b6d41a",
+                  color: "#06b6d4",
+                  fontWeight: 700,
+                  fontSize: "12px",
+                  cursor: "pointer",
+                  transition: "all .2s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "#06b6d433";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "#06b6d41a";
+                }}
+              >
+                📊 Analytics Dashboard
+              </button>
+
               {/* Band Guide Button */}
               <button
                 onClick={() => setShowBandGuide(true)}
@@ -327,6 +355,14 @@ export function SettingsPanel({ store, setStore, profile, switchProfile, zenMode
         isOpen={showBandGuide}
         onClose={() => setShowBandGuide(false)}
       />
+
+      {/* Analytics Dashboard */}
+      {showAnalytics && (
+        <AnalyticsDashboard
+          store={store}
+          onClose={() => setShowAnalytics(false)}
+        />
+      )}
     </>
   );
 }
