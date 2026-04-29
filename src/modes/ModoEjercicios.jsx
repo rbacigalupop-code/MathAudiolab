@@ -104,13 +104,11 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
     };
   }, [nivelSeleccionado, setStore]);
 
-  const newQ = useCallback(() => {
-    // Ensure nivelSeleccionado is valid - proper type checking
-    const validNivel = (typeof nivelSeleccionado === 'number' && nivelSeleccionado >= 1 && nivelSeleccionado <= 5)
-      ? nivelSeleccionado
-      : 1;
-    const cfg = NIVELES[validNivel - 1];
+  // Extract cfg to global scope so it can be used in JSX and useCallback
+  const safeLevelIndex = Math.max(0, Math.min(4, nivelSeleccionado - 1));
+  const cfg = NIVELES[safeLevelIndex];
 
+  const newQ = useCallback(() => {
     if (!cfg || !cfg.tablas) {
       console.error("[ModoEjercicios] Config not found for nivel:", validNivel, "NIVELES:", NIVELES);
       return;
@@ -132,7 +130,7 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
     setFactor(f);
     setInput("");
     setEstado("esperando");
-  }, [nivelSeleccionado, store.erroresPorTabla]);  // Only depend on nivel and error data
+  }, [cfg, nivelSeleccionado, store.erroresPorTabla]);  // Include cfg since it's now global
 
   const c = TC[tabla] || "#f97316";
 
