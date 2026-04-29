@@ -7,18 +7,21 @@ import { LessonPanel } from "../components/LessonPanel";
 import { useWeightedSampling } from "../hooks/useWeightedSampling";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useMascotaContext } from "../contexts/MascotaFocaContext";
+import { useProgressiveHints } from "../hooks/useProgressiveHints";
+import { getBandIdFromName } from "../constants/mascota";
 import { notaPara, TC, NIVELES, ACIERTOS_PARA_SUBIR, SOL } from "../constants/music";
 
-export default function ModoEjercicios({ store, setStore, audio, instrumento, setRockActive, rockActive }) {
+const DEFAULT_BPM_EJERCICIOS = 120;
+
+export default function ModoEjercicios({ store, setStore, audio, instrumento, setRockActive, rockActive, bandData = null }) {
   // Acceder a recordError del hook de storage
   const { recordError } = useLocalStorage();
 
   // Nivel seleccionable (permite elegir cualquier nivel)
   const [nivelSeleccionado, setNivelSeleccionado] = useState(store.nivel);
+  const [syncedBPM, setSyncedBPMLocal] = useState(DEFAULT_BPM_EJERCICIOS);
 
-  // HOTFIX: Memoize cfg to prevent constant state recalculations
-  const cfg = useMemo(() => NIVELES[nivelSeleccionado - 1], [nivelSeleccionado]);
-  const [tabla, setTabla] = useState(cfg.tablas[0]);
+  const [tabla, setTabla] = useState(NIVELES[nivelSeleccionado - 1].tablas[0]);
   const [factor, setFactor] = useState(null);
   const [input, setInput] = useState("");
   const [estado, setEstado] = useState("esperando");
@@ -30,18 +33,47 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
   const inputRef = useRef(null);
   const timeoutsRef = useRef([]);
   const sessionRef = useRef({ correctas: 0, intentos: 0 });
-  const c = TC[tabla] || "#f97316";
 
   // Hook para muestreo ponderado (70% weak points, 30% nuevo)
   const { getWeightedProblem, recordAttempt } = useWeightedSampling(store);
 
   // Hook para mascota interactiva
-  const { triggerPunch } = useMascotaContext();
+  const { triggerPunch, setCurrentBanda, updateHint, resetHints } = useMascotaContext();
+
+  // Hook para pistas progresivas (10 segundos de espera antes de la primera pista)
+  const { currentHint, resetHints: resetHintsHook } = useProgressiveHints("ejercicios", null, 10000);
+
+  // Sincronizar el hint del hook con el contexto de mascota
+  useEffect(() => {
+    if (currentHint) {
+      updateHint(currentHint);
+    }
+  }, [currentHint, updateHint]);
 
   // Cleanup
   useEffect(() => {
     return () => timeoutsRef.current.forEach(clearTimeout);
   }, []);
+
+  // Sincronizar BPM y actualizar contexto de banda si bandData cambia
+  useEffect(() => {
+    if (bandData && audio && audio.setSyncedBPM) {
+      const bpm = bandData.bpm || DEFAULT_BPM_EJERCICIOS;
+      audio.setSyncedBPM(bpm);
+      setSyncedBPMLocal(bpm);
+      console.log(`[ModoEjercicios] BPM sincronizado: ${bpm}`);
+
+      // Actualizar contexto de mascota con banda actual (para tooltips dinámicos)
+      const bandId = getBandIdFromName(bandData.name);
+      if (bandId) {
+        setCurrentBanda(bandId);
+        console.log(`[ModoEjercicios] Mascota banda actualizada: ${bandId}`);
+      }
+    } else {
+      // Si no hay bandData, limpiar banda del contexto
+      setCurrentBanda(null);
+    }
+  }, [bandData, audio, setCurrentBanda]);
 
   // Sesión
   useEffect(() => {
@@ -60,7 +92,9 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
     };
   }, [nivelSeleccionado, setStore]);
 
-  const rndTabla = useCallback(() => {
+  const newQ = useCallback(() => {
+    // Move cfg and rndTabla logic inside callback to avoid circular dependency with store
+    const cfg = NIVELES[nivelSeleccionado - 1];
     const err = store.erroresPorTabla;
     const weighted = cfg.tablas.flatMap((t) => {
       const e = err[t];
@@ -68,25 +102,22 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
       const pct = e.correctas / (e.correctas + e.incorrectas || 1);
       return pct < 0.6 ? [t, t, t] : pct < 0.8 ? [t, t] : [t];
     });
-    return weighted[Math.floor(Math.random() * weighted.length)];
-  }, [cfg, store.erroresPorTabla]);
-
-  const newQ = useCallback(() => {
-    const t = rndTabla();
+    const t = weighted[Math.floor(Math.random() * weighted.length)];
     setTabla(t);
 
-    // HOTFIX: Don't call getWeightedProblem (prevents re-render loop with store changes)
-    // Just generate random factor
+    // Generate random factor
     const f = Math.floor(Math.random() * 10) + 1;
 
     setFactor(f);
     setInput("");
     setEstado("esperando");
-  }, [rndTabla]);  // Only depend on rndTabla, NOT getWeightedProblem
+  }, [nivelSeleccionado, store.erroresPorTabla]);  // Only depend on nivel and error data
+
+  const c = TC[tabla] || "#f97316";
 
   useEffect(() => {
     newQ();
-  }, [nivelSeleccionado, newQ]);
+  }, [nivelSeleccionado]);
 
   const check = useCallback(async () => {
     if (!input || factor === null) return;
@@ -118,6 +149,8 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
       setStreak(ns);
       sessionRef.current.correctas++;
       triggerPunch(); // Animar la mascota
+      resetHints(); // Resetear pistas progresivas
+      resetHintsHook(); // Resetear el hook de pistas
       const nota = notaPara(tabla, factor);
       setAN(nota.t);
 

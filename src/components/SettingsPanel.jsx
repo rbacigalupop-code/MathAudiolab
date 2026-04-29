@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BandGuideModal } from "./BandGuideModal";
+import AudioLegendModal from "./AudioLegendModal";
 
 const PROFILES = [
   { id: "cristobal", label: "👨 Cristóbal" },
@@ -10,6 +11,7 @@ const PROFILES = [
 export function SettingsPanel({ store, setStore, profile, switchProfile, zenMode, setZenMode }) {
   const [isOpen, setIsOpen] = useState(false);
   const [showBandGuide, setShowBandGuide] = useState(false);
+  const [showAudioLegend, setShowAudioLegend] = useState(false);
 
   const settings = store.settings || { volumen: 0.7, bpm: 100 };
 
@@ -241,6 +243,32 @@ export function SettingsPanel({ store, setStore, profile, switchProfile, zenMode
                 </div>
               </div>
 
+              {/* Audio Legend Button */}
+              <button
+                onClick={() => setShowAudioLegend(true)}
+                style={{
+                  width: "100%",
+                  padding: "10px",
+                  marginBottom: 8,
+                  borderRadius: 8,
+                  border: "1.5px solid #f97316",
+                  background: "#f973161a",
+                  color: "#f97316",
+                  fontWeight: 700,
+                  fontSize: "12px",
+                  cursor: "pointer",
+                  transition: "all .2s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "#f97316aa";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "#f973161a";
+                }}
+              >
+                🎵 Cómo Funcionan los Sonidos
+              </button>
+
               {/* Band Guide Button */}
               <button
                 onClick={() => setShowBandGuide(true)}
@@ -287,6 +315,12 @@ export function SettingsPanel({ store, setStore, profile, switchProfile, zenMode
           </>
         )}
       </AnimatePresence>
+
+      {/* Audio Legend Modal */}
+      <AudioLegendModal
+        isOpen={showAudioLegend}
+        onClose={() => setShowAudioLegend(false)}
+      />
 
       {/* Band Guide Modal */}
       <BandGuideModal

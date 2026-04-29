@@ -10,7 +10,15 @@
     "bpm": 132,
     "videoId": "ZXhIPtWfYl0",
     "pedagogyTip": "Las potencias crecen EXPONENCIALMENTE. 2¹ = 2, 2² = 4, 2³ = 8. El número se multiplica por sí mismo cada vez que subes el exponente.",
-    "mascotaQuip": "🤘 ¡MCR! La música aumenta como 2ˣ - ¡exponencial, hermano!"
+    "mascotaQuip": "🤘 ¡MCR! La música aumenta como 2ˣ - ¡exponencial, hermano!",
+    "audioExplanation": "Cada nota que escuchas sube una OCTAVA. Una octava es cuando la frecuencia se DUPLICA. Para 2³ escucharás: Do2 (base) → Do3 (×2) → Do4 (×4) → Do5 (×8). ¡La nota se vuelve más aguda cada vez!",
+    "audioHint": "Escucha cómo la nota sube y se duplica. Eso es la potencia creciendo exponencialmente.",
+    "progressiveHints": [
+      "Piensa en el número BASE y cuántas veces se multiplica",
+      "El exponente dice CUÁNTAS VECES multiplicas la base",
+      "Recuerda: 2³ = 2 × 2 × 2, no 2 + 2 + 2",
+      "Cuenta los factores: 2 × 2 (dos factores) = 2², 2 × 2 × 2 (tres factores) = 2³"
+    ]
   },
 
   "bunkers": {
@@ -23,7 +31,15 @@
     "exampleTrack": "Ven Aquí",
     "bpm": 95,
     "pedagogyTip": "División es lo OPUESTO a multiplicación. Si 3 × 4 = 12, entonces 12 ÷ 3 = 4. La banda actúa como unidad dividida.",
-    "mascotaQuip": "🎵 Los Bunkers dividen el ritmo con precisión. ¡División = repartir partes iguales!"
+    "mascotaQuip": "🎵 Los Bunkers dividen el ritmo con precisión. ¡División = repartir partes iguales!",
+    "audioExplanation": "Escucharás GRUPOS de notas iguales, separadas por pausas. Para 12 ÷ 3 = 4: escucharás 3 grupos, cada uno con 4 notas idénticas. ¡Cuenta: 1-2-3-4 (pausa) 1-2-3-4 (pausa) 1-2-3-4!",
+    "audioHint": "Cada grupo tiene el MISMO número de notas. Cuenta cuántas notas hay en cada grupo.",
+    "progressiveHints": [
+      "¿Cuántos números tienes que repartir? (dividendo)",
+      "¿En cuántos grupos iguales los repartes? (divisor)",
+      "¿Cuántos van en cada grupo? (cociente)",
+      "Verifica: grupos × notas por grupo = total. Ejemplo: 3 × 4 = 12"
+    ]
   },
 
   "twice": {
@@ -36,7 +52,15 @@
     "exampleTrack": "Fancy",
     "bpm": 124,
     "pedagogyTip": "Multiplicación es REPETICIÓN. 4 × 3 significa 4 grupos de 3 elementos. ¡La coreografía de Twice lo demuestra perfectamente!",
-    "mascotaQuip": "💃 ¡Twice! 9 integrantes × movimientos = coreografía perfecta. ¡Multiplicación en la vida real!"
+    "mascotaQuip": "💃 ¡Twice! 9 integrantes × movimientos = coreografía perfecta. ¡Multiplicación en la vida real!",
+    "audioExplanation": "Escucharás una escala ASCENDENTE victoriosa que sube gradualmente: Do → Mi → Sol → Do (más agudo). Eso es éxito y acumulación. ¡5 × 7 es como sumar 5 veces el número 7!",
+    "audioHint": "La escala sube como una victoria. Eso representa que estás ACUMULANDO y MULTIPLICANDO.",
+    "progressiveHints": [
+      "Multiplicación es sumar un número VARIAS VECES",
+      "3 × 4 = 4 + 4 + 4. ¿Ves? Tres grupos de cuatro",
+      "El primer número dice CUÁNTOS grupos, el segundo dice el TAMAÑO de cada grupo",
+      "Prueba: 5 × 7 = 7 + 7 + 7 + 7 + 7. Cuenta los sietes"
+    ]
   },
 
   "blackpink": {
@@ -49,7 +73,15 @@
     "exampleTrack": "Shut Down",
     "bpm": 108,
     "pedagogyTip": "Multiplicación no es solo matemática, ¡es estrategia! 4 personas × coordinación = impacto global de Blackpink.",
-    "mascotaQuip": "🔥 Blackpink: 4 artistas × talento infinito = ¡explosión de multiplicación!"
+    "mascotaQuip": "🔥 Blackpink: 4 artistas × talento infinito = ¡explosión de multiplicación!",
+    "audioExplanation": "Escucharás energía explosiva que crece. Eso representa la multiplicación: tomas un número y lo ACUMULAS. 4 × 6 = 4 integrantes haciendo 6 pasos cada una.",
+    "audioHint": "Multiplicación = Repetición con energía. Escucha cómo se construye la escala.",
+    "progressiveHints": [
+      "¿Cuántas veces tienes que repetir el número?",
+      "Multiplicación es conmutativa: 4 × 6 = 6 × 4 = 24",
+      "Intenta: primero multiplica los números redondos, luego ajusta",
+      "4 × 6 = 4 × 5 + 4 × 1 = 20 + 4 = 24 (descomposición)"
+    ]
   },
 
   "general": {
@@ -86,7 +118,15 @@
       "conceptExplanation": "Multiplicación repetida. 2³ significa 2 × 2 × 2 = 8. El número pequeño arriba (exponente) dice cuántas veces multiplicas.",
       "keyBit": "2³ = 2 × 2 × 2 (tres factores de 2). El exponente CUENTA los factores, no la multiplicación final.",
       "pedagogyTip": "Memoriza potencias de 2: 2¹=2, 2²=4, 2³=8, 2⁴=16, 2⁵=32, 2⁶=64, 2⁷=128, 2⁸=256, 2⁹=512, 2¹⁰=1024.",
-      "mascotaQuip": "⚡ ¡Potencias! Crece exponencialmente."
+      "mascotaQuip": "⚡ ¡Potencias! Crece exponencialmente.",
+      "audioExplanation": "Escucha cómo la nota se duplica en frecuencia (sube de octava). Eso representa la multiplicación exponencial.",
+      "audioHint": "Cuenta las notas que escuchas. Son tantas como el exponente + 1.",
+      "progressiveHints": [
+        "El exponente dice CUÁNTAS VECES multiplicas la base",
+        "Base² = base × base. Base³ = base × base × base",
+        "¿Cuál es tu base? ¿Cuál es tu exponente? Multiplica la base esa cantidad de veces",
+        "Potencias de 2 son fáciles: cada una es el doble. 2³ = 2 × 2 × 2 = 8"
+      ]
     }
   }
 }

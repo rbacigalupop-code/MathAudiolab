@@ -12,7 +12,7 @@ export const MascotaFocaContext = createContext();
 
 /**
  * Hook para usar el contexto de la mascota
- * @returns {Object} { triggerPunch, setCurrentMode, currentMode, showTooltip, setShowTooltip }
+ * @returns {Object} { triggerPunch, setCurrentMode, currentMode, showTooltip, setShowTooltip, currentBanda, setCurrentBanda, audioLegendOpen, setAudioLegendOpen }
  */
 export const useMascotaContext = () => {
   const context = useContext(MascotaFocaContext);
@@ -24,6 +24,14 @@ export const useMascotaContext = () => {
       currentMode: "tabla",
       showTooltip: false,
       setShowTooltip: () => {},
+      currentBanda: null,
+      setCurrentBanda: () => {},
+      audioLegendOpen: false,
+      setAudioLegendOpen: () => {},
+      currentHint: null,
+      updateHint: () => {},
+      resetHints: () => {},
+      resetHintsTrigger: 0,
     };
   }
   return context;
@@ -37,6 +45,10 @@ export function MascotaFocaProvider({ children }) {
   const [punchTrigger, setPunchTrigger] = useState(0);
   const [currentMode, setCurrentMode] = useState("tabla");
   const [showTooltip, setShowTooltip] = useState(false);
+  const [currentBanda, setCurrentBanda] = useState(null); // Para tooltips dinámicos de bandas
+  const [audioLegendOpen, setAudioLegendOpen] = useState(false); // Para AudioLegendModal
+  const [currentHint, setCurrentHint] = useState(null); // Para pistas progresivas
+  const [resetHintsTrigger, setResetHintsTrigger] = useState(0); // Trigger para resetear hints
 
   /**
    * Dispara la animación de punch de la foca
@@ -46,6 +58,22 @@ export function MascotaFocaProvider({ children }) {
     setPunchTrigger((prev) => prev + 1);
   }, []);
 
+  /**
+   * Actualiza la pista actual
+   */
+  const updateHint = useCallback((hint) => {
+    setCurrentHint(hint);
+  }, []);
+
+  /**
+   * Resetea el sistema de pistas
+   * Se llama cuando el usuario contesta correctamente
+   */
+  const resetHints = useCallback(() => {
+    setCurrentHint(null);
+    setResetHintsTrigger((prev) => prev + 1);
+  }, []);
+
   const value = {
     punchTrigger,
     triggerPunch,
@@ -53,6 +81,14 @@ export function MascotaFocaProvider({ children }) {
     setCurrentMode,
     showTooltip,
     setShowTooltip,
+    currentBanda,
+    setCurrentBanda,
+    audioLegendOpen,
+    setAudioLegendOpen,
+    currentHint,
+    updateHint,
+    resetHints,
+    resetHintsTrigger,
   };
 
   return (

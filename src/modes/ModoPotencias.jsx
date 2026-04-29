@@ -7,6 +7,8 @@ import { LessonPanel } from "../components/LessonPanel";
 import { useWeightedSampling } from "../hooks/useWeightedSampling";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useMascotaContext } from "../contexts/MascotaFocaContext";
+import { useProgressiveHints } from "../hooks/useProgressiveHints";
+import { getBandIdFromName } from "../constants/mascota";
 
 const POTENCIA_NIVELES = [
   { id: 1, label: "Nivel 1", desc: "Exponente 0–3", maxExp: 3 },
@@ -15,13 +17,17 @@ const POTENCIA_NIVELES = [
 ];
 
 const BASE_FREQ = { 2: "C2", 3: "G2", 5: "E2" };
+const DEFAULT_BPM = 120; // Fallback BPM if not synchronized
 
-async function playEscaleraOctavas(base, exponente, audio, instrumento) {
+async function playEscaleraOctavas(base, exponente, audio, instrumento, bpm = DEFAULT_BPM) {
   const s = await audio.getSamplerSync(instrumento);
   const t0 = Tone.now();
   const baseNote = BASE_FREQ[base] || "C2";
   const baseFreq = Tone.Frequency(baseNote).toFrequency();
-  const STEP = 0.35;
+
+  // Calculate dynamic step based on BPM (or use default)
+  const STEP = audio.calculateStep ? audio.calculateStep(bpm, "8n") : 0.35;
+
   for (let i = 0; i <= exponente; i++) {
     const freq = baseFreq * Math.pow(base, i);
     if (freq > 4000) break;
@@ -29,7 +35,7 @@ async function playEscaleraOctavas(base, exponente, audio, instrumento) {
   }
 }
 
-export default function ModoPotencias({ store, setStore, audio, instrumento, setRockActive, rockActive }) {
+export default function ModoPotencias({ store, setStore, audio, instrumento, setRockActive, rockActive, bandData = null }) {
   const [nivelSeleccionado, setNivelSeleccionado] = useState(store.nivel || 1);
   const [base, setBase] = useState(2);
   const [exp, setExp] = useState(null);
@@ -38,11 +44,9 @@ export default function ModoPotencias({ store, setStore, audio, instrumento, set
   const [score, setScore] = useState(0);
   const [streak, setStreak] = useState(0);
   const [intentos, setIntentos] = useState(0);
+  const [syncedBPM, setSyncedBPMLocal] = useState(DEFAULT_BPM);
   const inputRef = useRef(null);
   const timeoutsRef = useRef([]);
-
-  // HOTFIX: Memoize cfg to prevent useEffect re-triggers
-  const cfg = useMemo(() => POTENCIA_NIVELES[nivelSeleccionado - 1], [nivelSeleccionado]);
 
   // Hook para muestreo ponderado (70% weak points, 30% nuevo)
   const { getWeightedProblem, recordAttempt } = useWeightedSampling(store);
@@ -51,26 +55,57 @@ export default function ModoPotencias({ store, setStore, audio, instrumento, set
   const { recordError } = useLocalStorage();
 
   // Hook para mascota interactiva
-  const { triggerPunch } = useMascotaContext();
+  const { triggerPunch, setCurrentBanda, updateHint, resetHints } = useMascotaContext();
+
+  // Hook para pistas progresivas (10 segundos de espera antes de la primera pista)
+  const { currentHint, resetHints: resetHintsHook } = useProgressiveHints("potencias", null, 10000);
+
+  // Sincronizar el hint del hook con el contexto de mascota
+  useEffect(() => {
+    if (currentHint) {
+      updateHint(currentHint);
+    }
+  }, [currentHint, updateHint]);
 
   useEffect(() => {
     return () => timeoutsRef.current.forEach(clearTimeout);
   }, []);
 
+  // Sincronizar BPM y actualizar contexto de banda si bandData cambia
+  useEffect(() => {
+    if (bandData && audio && audio.setSyncedBPM) {
+      const bpm = bandData.bpm || DEFAULT_BPM;
+      audio.setSyncedBPM(bpm);
+      setSyncedBPMLocal(bpm);
+      console.log(`[ModoPotencias] BPM sincronizado: ${bpm}`);
+
+      // Actualizar contexto de mascota con banda actual (para tooltips dinámicos)
+      const bandId = getBandIdFromName(bandData.name);
+      if (bandId) {
+        setCurrentBanda(bandId);
+        console.log(`[ModoPotencias] Mascota banda actualizada: ${bandId}`);
+      }
+    } else {
+      // Si no hay bandData, limpiar banda del contexto
+      setCurrentBanda(null);
+    }
+  }, [bandData, audio, setCurrentBanda]);
+
   const newQ = useCallback(() => {
-    // HOTFIX: Don't call getWeightedProblem on every newQ (prevents loop)
-    // Just generate random until user explicitly needs weak point review
+    // Move cfg calculation inside callback to avoid circular dependency
+    // with nivelSeleccionado → cfg → cfg.maxExp → newQ → useEffect
+    const config = POTENCIA_NIVELES[nivelSeleccionado - 1];
     let newBase, newExp;
 
-    // Generar nueva potencia aleatoria (simplificar: evitar loop de dependencias)
-    newExp = Math.floor(Math.random() * (cfg.maxExp + 1));
+    // Generar nueva potencia aleatoria
+    newExp = Math.floor(Math.random() * (config.maxExp + 1));
     newBase = [2, 3, 5][Math.floor(Math.random() * 3)];
 
     setExp(newExp);
     setBase(newBase);
     setInput("");
     setEstado("esperando");
-  }, [cfg.maxExp]);  // Only depend on cfg, NOT getWeightedProblem
+  }, [nivelSeleccionado]);  // Only depend on nivelSeleccionado
 
   useEffect(() => {
     console.log("[ModoPotencias] Calling newQ - dependencies changed", { nivelSeleccionado });
@@ -87,8 +122,8 @@ export default function ModoPotencias({ store, setStore, audio, instrumento, set
 
   const playPista = useCallback(async () => {
     if (exp === null) return;
-    await playEscaleraOctavas(base, Math.min(exp, 5), audio, instrumento);
-  }, [base, exp, audio, instrumento]);
+    await playEscaleraOctavas(base, Math.min(exp, 5), audio, instrumento, syncedBPM);
+  }, [base, exp, audio, instrumento, syncedBPM]);
 
   const check = useCallback(async () => {
     if (!input || exp === null) return;
@@ -107,7 +142,9 @@ export default function ModoPotencias({ store, setStore, audio, instrumento, set
       const ns = streak + 1;
       setStreak(ns);
       triggerPunch(); // Animar la mascota
-      await playEscaleraOctavas(base, exp, audio, instrumento);
+      resetHints(); // Resetear pistas progresivas
+      resetHintsHook(); // Resetear el hook de pistas
+      await playEscaleraOctavas(base, exp, audio, instrumento, syncedBPM);
       setStore((prev) => {
         const next = { ...prev };
 

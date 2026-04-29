@@ -8,6 +8,7 @@ export const BAND_METADATA = {
     name: "My Chemical Romance",
     concept: "powers",
     genre: "Emo/Rock",
+    country: "USA",
     tracks: [
       {
         title: "Welcome to the Black Parade",
@@ -22,10 +23,11 @@ export const BAND_METADATA = {
     name: "Los Bunkers",
     concept: "division",
     genre: "Rock Chileno",
+    country: "Chile",
     tracks: [
       {
         title: "Ven Aquí",
-        videoId: "dQw4w9WgXcQ",  // Placeholder - replace with actual
+        videoId: "PqAVK7BKnmE",
         bpm: 95,
         description: "Rhythmic patterns ideal for division practice"
       }
@@ -36,10 +38,11 @@ export const BAND_METADATA = {
     name: "Twice",
     concept: "multiplication",
     genre: "K-Pop",
+    country: "South Korea",
     tracks: [
       {
         title: "Fancy",
-        videoId: "tz3-kVzIY58",
+        videoId: "ShJ8M9qPN4Q",
         bpm: 124,
         description: "Choreography-based multiplication counting"
       },
@@ -56,6 +59,7 @@ export const BAND_METADATA = {
     name: "Blackpink",
     concept: "multiplication",
     genre: "K-Pop",
+    country: "South Korea",
     tracks: [
       {
         title: "Shut Down",

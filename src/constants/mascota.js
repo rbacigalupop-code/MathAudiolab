@@ -4,6 +4,24 @@
  */
 
 import educationalManual from "./educationalManual.json";
+import { BAND_METADATA } from "./bandMetadata";
+
+/**
+ * Map band names to band IDs for context passing
+ * @param {string} bandName - Band name (e.g., "My Chemical Romance")
+ * @returns {string|null} Band ID (e.g., "mcr") or null if not found
+ */
+export function getBandIdFromName(bandName) {
+  if (!bandName) return null;
+
+  const bandNameLower = bandName.toLowerCase();
+  for (const [bandId, bandData] of Object.entries(BAND_METADATA)) {
+    if (bandData.name.toLowerCase() === bandNameLower) {
+      return bandId;
+    }
+  }
+  return null;
+}
 
 /**
  * Static tooltips as fallback

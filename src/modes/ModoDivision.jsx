@@ -7,6 +7,8 @@ import { InstrumentoIndicator } from "../components/InstrumentoIndicator";
 import { useWeightedSampling } from "../hooks/useWeightedSampling";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useMascotaContext } from "../contexts/MascotaFocaContext";
+import { useProgressiveHints } from "../hooks/useProgressiveHints";
+import { getBandIdFromName } from "../constants/mascota";
 
 const ACIERTOS_PARA_SUBIR = 5;
 const NIVELES_DIVISION = [
@@ -28,7 +30,9 @@ function generateDivisionProblem(nivel) {
   return { dividendo, divisor, respuestaEsperada: resultado };
 }
 
-export default function ModoDivision({ store, setStore, audio, instrumento, setRockActive, rockActive }) {
+const DEFAULT_BPM_DIVISION = 120;
+
+export default function ModoDivision({ store, setStore, audio, instrumento, setRockActive, rockActive, bandData = null }) {
   const [nivelSeleccionado, setNivelSeleccionado] = useState(store.nivel || 1);
   const [dividendo, setDividendo] = useState(null);
   const [divisor, setDivisor] = useState(null);
@@ -39,6 +43,7 @@ export default function ModoDivision({ store, setStore, audio, instrumento, setR
   const [streak, setStreak] = useState(0);
   const [intentos, setIntentos] = useState(0);
   const [levelUpMsg, setLevelUpMsg] = useState(false);
+  const [syncedBPM, setSyncedBPMLocal] = useState(DEFAULT_BPM_DIVISION);
   const inputRef = useRef(null);
   const timeoutsRef = useRef([]);
   const sessionRef = useRef({ correctas: 0, intentos: 0 });
@@ -52,11 +57,41 @@ export default function ModoDivision({ store, setStore, audio, instrumento, setR
   const { recordError } = useLocalStorage();
 
   // Hook para mascota interactiva
-  const { triggerPunch } = useMascotaContext();
+  const { triggerPunch, setCurrentBanda, updateHint, resetHints } = useMascotaContext();
+
+  // Hook para pistas progresivas (10 segundos de espera antes de la primera pista)
+  const { currentHint, resetHints: resetHintsHook } = useProgressiveHints("division", null, 10000);
+
+  // Sincronizar el hint del hook con el contexto de mascota
+  useEffect(() => {
+    if (currentHint) {
+      updateHint(currentHint);
+    }
+  }, [currentHint, updateHint]);
 
   useEffect(() => {
     return () => timeoutsRef.current.forEach(clearTimeout);
   }, []);
+
+  // Sincronizar BPM y actualizar contexto de banda si bandData cambia
+  useEffect(() => {
+    if (bandData && audio && audio.setSyncedBPM) {
+      const bpm = bandData.bpm || DEFAULT_BPM_DIVISION;
+      audio.setSyncedBPM(bpm);
+      setSyncedBPMLocal(bpm);
+      console.log(`[ModoDivision] BPM sincronizado: ${bpm}`);
+
+      // Actualizar contexto de mascota con banda actual (para tooltips dinámicos)
+      const bandId = getBandIdFromName(bandData.name);
+      if (bandId) {
+        setCurrentBanda(bandId);
+        console.log(`[ModoDivision] Mascota banda actualizada: ${bandId}`);
+      }
+    } else {
+      // Si no hay bandData, limpiar banda del contexto
+      setCurrentBanda(null);
+    }
+  }, [bandData, audio, setCurrentBanda]);
 
   useEffect(() => {
     sessionRef.current = { correctas: 0, intentos: 0 };
@@ -117,6 +152,8 @@ export default function ModoDivision({ store, setStore, audio, instrumento, setR
       setStreak(ns);
       sessionRef.current.correctas++;
       triggerPunch(); // Animar la mascota
+      resetHints(); // Resetear pistas progresivas
+      resetHintsHook(); // Resetear el hook de pistas
 
       await audio.playDivisionSuccess(instrumento, divisor, respuestaEsperada);
 
@@ -280,10 +317,11 @@ export default function ModoDivision({ store, setStore, audio, instrumento, setR
           </div>
 
           {/* Beat Slicer Visualization - shows rhythm-based division */}
+          {/* Sincronizado con BPM del video/banda seleccionada */}
           <BeatSlicerVisualizer
             dividendo={dividendo}
             divisor={divisor}
-            bpm={120}
+            bpm={syncedBPM}
             accentColor={c}
           />
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useMascotaContext } from "../contexts/MascotaFocaContext";
 import {
   MASCOTA_TOOLTIPS,
@@ -8,6 +8,8 @@ import {
   MASCOTA_SIZE,
   getTooltipForMode,
 } from "../constants/mascota";
+import { useTextToSpeech } from "../hooks/useTextToSpeech";
+import AudioLegendModal from "./AudioLegendModal";
 
 /**
  * Componente MascotaFoca - Foca kawaii realista
@@ -18,13 +20,25 @@ import {
  * - Auto-dimite tooltip después de 4s
  */
 const MascotaFoca = React.memo(() => {
-  const { punchTrigger, currentMode, showTooltip, setShowTooltip } =
-    useMascotaContext();
+  const {
+    punchTrigger,
+    currentMode,
+    showTooltip,
+    setShowTooltip,
+    currentBanda,
+    audioLegendOpen,
+    setAudioLegendOpen,
+    currentHint,
+    resetHints,
+  } = useMascotaContext();
 
   const [isHappy, setIsHappy] = useState(false);
   const [isPunching, setIsPunching] = useState(false);
   const [isMobileDevice, setIsMobileDevice] = useState(false);
+  const [showHintBubble, setShowHintBubble] = useState(false);
   const tooltipTimeoutRef = useRef(null);
+  const hintTimeoutRef = useRef(null);
+  const { speak, stop, isSpeaking } = useTextToSpeech();
 
   // Detectar dispositivo móvil para responsive scaling
   useEffect(() => {
@@ -65,30 +79,64 @@ const MascotaFoca = React.memo(() => {
     }
   }, [showTooltip, setShowTooltip]);
 
+  // Mostrar pista cuando hay una nueva pista disponible
+  useEffect(() => {
+    if (currentHint) {
+      setShowHintBubble(true);
+
+      // Hablar la pista automáticamente
+      const hintText = `Pista: ${currentHint}`;
+      speak(hintText, "es", 0.9, 1, 0.7);
+
+      // Auto-cerrar la pista después de 6 segundos
+      hintTimeoutRef.current = setTimeout(() => {
+        setShowHintBubble(false);
+      }, 6000);
+
+      return () => {
+        if (hintTimeoutRef.current) {
+          clearTimeout(hintTimeoutRef.current);
+        }
+      };
+    }
+  }, [currentHint, speak]);
+
   const handleClick = () => {
     setShowTooltip(!showTooltip);
   };
 
+  const handleShowAudioLegend = () => {
+    setAudioLegendOpen(true);
+  };
+
   // Tooltip message para el modo actual - usar contenido dinámico del manual educativo
-  const tooltipText = getTooltipForMode(currentMode);
+  // Si hay una banda seleccionada, usar tooltips específicos de la banda
+  const tooltipText = getTooltipForMode(currentMode, currentBanda);
 
   // Responsive scale basado en tamaño de pantalla
   const scale = isMobileDevice ? 0.7 : window.innerWidth < 1024 ? 0.85 : 1;
 
   return (
-    <motion.div
-      style={{
-        position: "fixed",
-        bottom: "20px",
-        right: "20px",
-        zIndex: 40,
-        cursor: "pointer",
-      }}
-      animate={{
-        scale: scale,
-      }}
-      transition={{ type: "spring", stiffness: 100, damping: 15 }}
-    >
+    <>
+      {/* AudioLegendModal */}
+      <AudioLegendModal
+        isOpen={audioLegendOpen}
+        onClose={() => setAudioLegendOpen(false)}
+      />
+
+      <motion.div
+        style={{
+          position: "fixed",
+          bottom: "20px",
+          right: "20px",
+          zIndex: 40,
+          cursor: "pointer",
+        }}
+        animate={{
+          scale: scale,
+        }}
+        transition={{ type: "spring", stiffness: 100, damping: 15 }}
+      >
       {/* SVG de la foca - Diseño realista */}
       <motion.svg
         viewBox={`0 0 ${MASCOTA_SIZE.VIEWPORT_WIDTH} ${MASCOTA_SIZE.VIEWPORT_HEIGHT}`}
@@ -337,46 +385,121 @@ const MascotaFoca = React.memo(() => {
         />
       )}
 
-      {/* Tooltip - Instrucciones del modo */}
+      {/* Hint Bubble - Pistas progresivas */}
+      <AnimatePresence>
+        {showHintBubble && currentHint && (
+          <motion.div
+            initial={{ opacity: 0, y: -10, scale: 0.8 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.8 }}
+            transition={{ duration: 0.3 }}
+            style={{
+              position: "absolute",
+              bottom: "calc(100% + 50px)",
+              right: "-20px",
+              whiteSpace: "normal",
+              maxWidth: "220px",
+              backgroundColor: "#059669",
+              color: "#f0fdf4",
+              padding: "12px 14px",
+              borderRadius: 12,
+              fontSize: "clamp(10px, 1.8vw, 12px)",
+              fontWeight: 600,
+              border: "2px solid #10b981",
+              boxShadow: "0 8px 24px rgba(16, 185, 129, 0.4)",
+              zIndex: 51,
+              lineHeight: 1.4,
+            }}
+          >
+            💡 {currentHint}
+            {/* Triángulo pointer hacia la foca */}
+            <div
+              style={{
+                position: "absolute",
+                bottom: "-12px",
+                right: "30px",
+                width: 0,
+                height: 0,
+                borderLeft: "12px solid transparent",
+                borderRight: "12px solid transparent",
+                borderTop: "12px solid #059669",
+              }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Botón de Audio Legend (arriba del tooltip) */}
       {showTooltip && (
-        <motion.div
-          initial={{ opacity: 0, y: 10, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 10, scale: 0.95 }}
-          transition={{ duration: 0.2 }}
+        <motion.button
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={handleShowAudioLegend}
           style={{
             position: "absolute",
-            bottom: "calc(100% + 15px)",
-            right: 0,
-            whiteSpace: "nowrap",
-            backgroundColor: "#1e293b",
-            color: "#f1f5f9",
-            padding: "10px 14px",
-            borderRadius: 10,
-            fontSize: "clamp(11px, 2vw, 13px)",
+            bottom: "calc(100% + 70px)",
+            right: "10px",
+            backgroundColor: "#f97316",
+            color: "white",
+            border: "none",
+            padding: "8px 12px",
+            borderRadius: 8,
+            fontSize: "12px",
             fontWeight: 600,
-            border: "1.5px solid #475569",
-            boxShadow: "0 4px 16px rgba(0, 0, 0, 0.5)",
+            cursor: "pointer",
+            boxShadow: "0 4px 12px rgba(249, 115, 22, 0.4)",
             zIndex: 50,
           }}
         >
-          {tooltipText}
-          {/* Triángulo pointer hacia la foca */}
-          <div
+          🎵 Cómo Funcionan
+        </motion.button>
+      )}
+
+      {/* Tooltip - Instrucciones del modo */}
+      <AnimatePresence>
+        {showTooltip && (
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
             style={{
               position: "absolute",
-              bottom: "-10px",
-              right: "25px",
-              width: 0,
-              height: 0,
-              borderLeft: "10px solid transparent",
-              borderRight: "10px solid transparent",
-              borderTop: "10px solid #1e293b",
+              bottom: "calc(100% + 15px)",
+              right: 0,
+              whiteSpace: "nowrap",
+              backgroundColor: "#1e293b",
+              color: "#f1f5f9",
+              padding: "10px 14px",
+              borderRadius: 10,
+              fontSize: "clamp(11px, 2vw, 13px)",
+              fontWeight: 600,
+              border: "1.5px solid #475569",
+              boxShadow: "0 4px 16px rgba(0, 0, 0, 0.5)",
+              zIndex: 50,
             }}
-          />
-        </motion.div>
-      )}
+          >
+            {tooltipText}
+            {/* Triángulo pointer hacia la foca */}
+            <div
+              style={{
+                position: "absolute",
+                bottom: "-10px",
+                right: "25px",
+                width: 0,
+                height: 0,
+                borderLeft: "10px solid transparent",
+                borderRight: "10px solid transparent",
+                borderTop: "10px solid #1e293b",
+              }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
+    </>
   );
 });
 
