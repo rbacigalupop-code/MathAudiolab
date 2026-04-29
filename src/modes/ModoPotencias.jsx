@@ -36,7 +36,9 @@ async function playEscaleraOctavas(base, exponente, audio, instrumento, bpm = DE
 }
 
 export default function ModoPotencias({ store, setStore, audio, instrumento, setRockActive, rockActive, bandData = null }) {
-  const [nivelSeleccionado, setNivelSeleccionado] = useState(Math.max(1, Math.min(3, store.nivel || 1)));
+  // Ensure nivel is always valid (1-3)
+  const validNivel = Math.max(1, Math.min(3, store?.nivel || 1));
+  const [nivelSeleccionado, setNivelSeleccionado] = useState(validNivel);
   const [base, setBase] = useState(2);
   const [exp, setExp] = useState(null);
   const [input, setInput] = useState("");
