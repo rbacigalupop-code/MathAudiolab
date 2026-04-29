@@ -26,7 +26,14 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
   const [nivelSeleccionado, setNivelSeleccionado] = useState(validNivel);
   const [syncedBPM, setSyncedBPMLocal] = useState(DEFAULT_BPM_EJERCICIOS);
 
-  const [tabla, setTabla] = useState(NIVELES[nivelSeleccionado - 1].tablas[0]);
+  // Lazy initialization to prevent undefined access
+  const [tabla, setTabla] = useState(() => {
+    const config = NIVELES[validNivel - 1];
+    if (config?.tablas?.length > 0) {
+      return config.tablas[0];
+    }
+    return NIVELES[0]?.tablas?.[0] || 2; // Fallback to 2 (multiplication table)
+  });
   const [factor, setFactor] = useState(null);
   const [input, setInput] = useState("");
   const [estado, setEstado] = useState("esperando");
