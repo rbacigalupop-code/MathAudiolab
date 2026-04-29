@@ -36,8 +36,10 @@ async function playEscaleraOctavas(base, exponente, audio, instrumento, bpm = DE
 }
 
 export default function ModoPotencias({ store, setStore, audio, instrumento, setRockActive, rockActive, bandData = null }) {
-  // Ensure nivel is always valid (1-3)
-  const validNivel = Math.max(1, Math.min(3, store?.nivel || 1));
+  // Ensure nivel is always valid (1-3) - proper type checking instead of Math.max/min with undefined
+  const validNivel = (typeof store?.nivel === 'number' && store.nivel >= 1 && store.nivel <= 3)
+    ? store.nivel
+    : 1;
   const [nivelSeleccionado, setNivelSeleccionado] = useState(validNivel);
   const [base, setBase] = useState(2);
   const [exp, setExp] = useState(null);
@@ -60,15 +62,14 @@ export default function ModoPotencias({ store, setStore, audio, instrumento, set
   const { triggerPunch, setCurrentBanda, updateHint, resetHints } = useMascotaContext();
 
   // Hook para pistas progresivas (10 segundos de espera antes de la primera pista)
-  // TEMPORARILY DISABLED FOR DEBUGGING
-  // const { currentHint, resetHints: resetHintsHook } = useProgressiveHints("potencias", null, 10000);
+  const { currentHint, resetHints: resetHintsHook } = useProgressiveHints("potencias", null, 10000);
 
   // Sincronizar el hint del hook con el contexto de mascota
-  // useEffect(() => {
-  //   if (currentHint) {
-  //     updateHint(currentHint);
-  //   }
-  // }, [currentHint, updateHint]);
+  useEffect(() => {
+    if (currentHint) {
+      updateHint(currentHint);
+    }
+  }, [currentHint, updateHint]);
 
   useEffect(() => {
     return () => timeoutsRef.current.forEach(clearTimeout);
@@ -97,7 +98,16 @@ export default function ModoPotencias({ store, setStore, audio, instrumento, set
   const newQ = useCallback(() => {
     // Move cfg calculation inside callback to avoid circular dependency
     // with nivelSeleccionado → cfg → cfg.maxExp → newQ → useEffect
-    const config = POTENCIA_NIVELES[nivelSeleccionado - 1];
+    const validNivel = (typeof nivelSeleccionado === 'number' && nivelSeleccionado >= 1 && nivelSeleccionado <= 3)
+      ? nivelSeleccionado
+      : 1;
+    const config = POTENCIA_NIVELES[validNivel - 1];
+
+    if (!config) {
+      console.error("[ModoPotencias] Config not found for nivel:", validNivel, "POTENCIA_NIVELES:", POTENCIA_NIVELES);
+      return;
+    }
+
     let newBase, newExp;
 
     // Generar nueva potencia aleatoria
@@ -145,8 +155,8 @@ export default function ModoPotencias({ store, setStore, audio, instrumento, set
       const ns = streak + 1;
       setStreak(ns);
       triggerPunch(); // Animar la mascota
-      resetHints(); // Resetear pistas progresivas
-      // resetHintsHook(); // Resetear el hook de pistas - TEMPORARILY DISABLED
+      resetHints(); // Resetear pistas progresivas (contexto)
+      resetHintsHook(); // Resetear el hook de pistas
       await playEscaleraOctavas(base, exp, audio, instrumento, syncedBPM);
       setStore((prev) => {
         const next = { ...prev };

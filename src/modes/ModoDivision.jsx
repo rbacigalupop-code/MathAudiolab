@@ -33,8 +33,10 @@ function generateDivisionProblem(nivel) {
 const DEFAULT_BPM_DIVISION = 120;
 
 export default function ModoDivision({ store, setStore, audio, instrumento, setRockActive, rockActive, bandData = null }) {
-  // Ensure nivel is always valid (1-5)
-  const validNivel = Math.max(1, Math.min(5, store?.nivel || 1));
+  // Ensure nivel is always valid (1-5) - proper type checking instead of Math.max/min with undefined
+  const validNivel = (typeof store?.nivel === 'number' && store.nivel >= 1 && store.nivel <= 5)
+    ? store.nivel
+    : 1;
 
   const [nivelSeleccionado, setNivelSeleccionado] = useState(validNivel);
   const [dividendo, setDividendo] = useState(null);
@@ -63,15 +65,14 @@ export default function ModoDivision({ store, setStore, audio, instrumento, setR
   const { triggerPunch, setCurrentBanda, updateHint, resetHints } = useMascotaContext();
 
   // Hook para pistas progresivas (10 segundos de espera antes de la primera pista)
-  // TEMPORARILY DISABLED FOR DEBUGGING
-  // const { currentHint, resetHints: resetHintsHook } = useProgressiveHints("division", null, 10000);
+  const { currentHint, resetHints: resetHintsHook } = useProgressiveHints("division", null, 10000);
 
   // Sincronizar el hint del hook con el contexto de mascota
-  // useEffect(() => {
-  //   if (currentHint) {
-  //     updateHint(currentHint);
-  //   }
-  // }, [currentHint, updateHint]);
+  useEffect(() => {
+    if (currentHint) {
+      updateHint(currentHint);
+    }
+  }, [currentHint, updateHint]);
 
   useEffect(() => {
     return () => timeoutsRef.current.forEach(clearTimeout);
@@ -114,12 +115,14 @@ export default function ModoDivision({ store, setStore, audio, instrumento, setR
   }, [nivelSeleccionado, setStore]);
 
   const newQ = useCallback(() => {
-    // Ensure nivelSeleccionado is valid
-    const validNivel = Math.max(1, Math.min(5, nivelSeleccionado));
+    // Ensure nivelSeleccionado is valid - proper type checking
+    const validNivel = (typeof nivelSeleccionado === 'number' && nivelSeleccionado >= 1 && nivelSeleccionado <= 5)
+      ? nivelSeleccionado
+      : 1;
     const cfg = NIVELES_DIVISION[validNivel - 1];
 
     if (!cfg) {
-      console.error("[ModoDivision] Config not found for nivel:", validNivel);
+      console.error("[ModoDivision] Config not found for nivel:", validNivel, "NIVELES_DIVISION:", NIVELES_DIVISION);
       return;
     }
 
@@ -158,8 +161,8 @@ export default function ModoDivision({ store, setStore, audio, instrumento, setR
       setStreak(ns);
       sessionRef.current.correctas++;
       triggerPunch(); // Animar la mascota
-      resetHints(); // Resetear pistas progresivas
-      // resetHintsHook(); // Resetear el hook de pistas - TEMPORARILY DISABLED
+      resetHints(); // Resetear pistas progresivas (contexto)
+      resetHintsHook(); // Resetear el hook de pistas
 
       await audio.playDivisionSuccess(instrumento, divisor, respuestaEsperada);
 

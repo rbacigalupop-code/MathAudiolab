@@ -17,8 +17,10 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
   // Acceder a recordError del hook de storage
   const { recordError } = useLocalStorage();
 
-  // Ensure nivel is always valid (1-5)
-  const validNivel = Math.max(1, Math.min(5, store?.nivel || 1));
+  // Ensure nivel is always valid (1-5) - proper type checking instead of Math.max/min with undefined
+  const validNivel = (typeof store?.nivel === 'number' && store.nivel >= 1 && store.nivel <= 5)
+    ? store.nivel
+    : 1;
 
   // Nivel seleccionable (permite elegir cualquier nivel)
   const [nivelSeleccionado, setNivelSeleccionado] = useState(validNivel);
@@ -44,15 +46,14 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
   const { triggerPunch, setCurrentBanda, updateHint, resetHints } = useMascotaContext();
 
   // Hook para pistas progresivas (10 segundos de espera antes de la primera pista)
-  // TEMPORARILY DISABLED FOR DEBUGGING
-  // const { currentHint, resetHints: resetHintsHook } = useProgressiveHints("ejercicios", null, 10000);
+  const { currentHint, resetHints: resetHintsHook } = useProgressiveHints("ejercicios", null, 10000);
 
   // Sincronizar el hint del hook con el contexto de mascota
-  // useEffect(() => {
-  //   if (currentHint) {
-  //     updateHint(currentHint);
-  //   }
-  // }, [currentHint, updateHint]);
+  useEffect(() => {
+    if (currentHint) {
+      updateHint(currentHint);
+    }
+  }, [currentHint, updateHint]);
 
   // Cleanup
   useEffect(() => {
@@ -97,12 +98,14 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
   }, [nivelSeleccionado, setStore]);
 
   const newQ = useCallback(() => {
-    // Ensure nivelSeleccionado is valid
-    const validNivel = Math.max(1, Math.min(5, nivelSeleccionado));
+    // Ensure nivelSeleccionado is valid - proper type checking
+    const validNivel = (typeof nivelSeleccionado === 'number' && nivelSeleccionado >= 1 && nivelSeleccionado <= 5)
+      ? nivelSeleccionado
+      : 1;
     const cfg = NIVELES[validNivel - 1];
 
     if (!cfg || !cfg.tablas) {
-      console.error("[ModoEjercicios] Config not found for nivel:", validNivel);
+      console.error("[ModoEjercicios] Config not found for nivel:", validNivel, "NIVELES:", NIVELES);
       return;
     }
 
@@ -160,8 +163,8 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
       setStreak(ns);
       sessionRef.current.correctas++;
       triggerPunch(); // Animar la mascota
-      resetHints(); // Resetear pistas progresivas
-      // resetHintsHook(); // Resetear el hook de pistas - TEMPORARILY DISABLED
+      resetHints(); // Resetear pistas progresivas (contexto)
+      resetHintsHook(); // Resetear el hook de pistas
       const nota = notaPara(tabla, factor);
       setAN(nota.t);
 
