@@ -18,7 +18,12 @@ const NIVELES_RESTAS = [
 const ACIERTOS_PARA_SUBIR = 5;
 
 export default function ModoRestas({ store, setStore, audio, instrumento, setRockActive, rockActive }) {
-  const [nivelSeleccionado, setNivelSeleccionado] = useState(store.nivel || 1);
+  // Ensure nivel is always valid (1-5) - proper type checking
+  const validNivel = (typeof store?.nivel === 'number' && store.nivel >= 1 && store.nivel <= 5)
+    ? store.nivel
+    : 1;
+
+  const [nivelSeleccionado, setNivelSeleccionado] = useState(validNivel);
   const [num1, setNum1] = useState(null);
   const [num2, setNum2] = useState(null);
   const [input, setInput] = useState("");
@@ -30,7 +35,14 @@ export default function ModoRestas({ store, setStore, audio, instrumento, setRoc
   const inputRef = useRef(null);
   const timeoutsRef = useRef([]);
   const sessionRef = useRef({ correctas: 0, intentos: 0 });
-  const cfg = NIVELES_RESTAS[nivelSeleccionado - 1];
+  // Ensure cfg is valid - use proper bounds checking
+  const safeLevelIndex = Math.max(0, Math.min(4, nivelSeleccionado - 1));
+  const cfg = NIVELES_RESTAS[safeLevelIndex];
+
+  if (!cfg) {
+    console.error("[ModoRestas] Config not found for nivel:", nivelSeleccionado);
+    return null;
+  }
 
   const c = "#f59e0b"; // Ámbar para Restas
 
