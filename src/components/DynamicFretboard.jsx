@@ -8,7 +8,7 @@ export function DynamicFretboard({ instrumento, activeNote, onFretClick }) {
     return <ResponsiveBassNeck activeNote={activeNote} onFretClick={onFretClick} />;
   }
 
-  if (instrumento === "guitar-acoustic") {
+  if (instrumento === "guitar-electric") {
     return <GuitarNeck activeNote={activeNote} onFretClick={onFretClick} />;
   }
 

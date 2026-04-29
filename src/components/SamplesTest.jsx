@@ -23,11 +23,11 @@ export default function SamplesTest({ onBack }) {
       ],
       samples: { C2: "C2.mp3", C4: "C4.mp3" },
     },
-    "guitar-acoustic": {
-      label: "🎸 Guitarra acústica",
+    "guitar-electric": {
+      label: "🎸 Guitarra eléctrica",
       cdns: [
         "https://storage.googleapis.com/magentadata/js/soundfont/sgm_plus/",
-        "https://cdn.jsdelivr.net/npm/tonejs-instrument-guitar-acoustic@1.1.4/",
+        "https://cdn.jsdelivr.net/npm/tonejs-instrument-electric-guitar@1.1.4/",
       ],
       samples: { G2: "G2.mp3", C3: "C3.mp3", E3: "E3.mp3", G3: "G3.mp3" },
     },

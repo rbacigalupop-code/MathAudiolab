@@ -80,18 +80,18 @@ export const INSTRUMENTOS = {
     },
     eq: { low: -2, mid: 0, high: 1 },
   },
-  "guitar-acoustic": {
-    label: "🎸 Guitarra acústica",
+  "guitar-electric": {
+    label: "🎸 Guitarra eléctrica",
     cdns: [
       "https://storage.googleapis.com/magentadata/js/soundfont/sgm_plus/",
-      "https://cdn.jsdelivr.net/npm/tonejs-instrument-guitar-acoustic@1.1.4/",
+      "https://cdn.jsdelivr.net/npm/tonejs-instrument-electric-guitar@1.1.4/",
     ],
     samples: {
       E2:"E2.mp3",F2:"F2.mp3","F#2":"Fs2.mp3",G2:"G2.mp3","G#2":"Gs2.mp3",A2:"A2.mp3","A#2":"As2.mp3",B2:"B2.mp3",
       C3:"C3.mp3","C#3":"Cs3.mp3",D3:"D3.mp3","D#3":"Ds3.mp3",E3:"E3.mp3",F3:"F3.mp3","F#3":"Fs3.mp3",G3:"G3.mp3","G#3":"Gs3.mp3",A3:"A3.mp3","A#3":"As3.mp3",B3:"B3.mp3",
       C4:"C4.mp3","C#4":"Cs4.mp3",D4:"D4.mp3",E4:"E4.mp3",
     },
-    eq: { low: 0, mid: 1, high: 0 },
+    eq: { low: -3, mid: 2, high: 3 },
   },
 };
 
@@ -106,12 +106,12 @@ function buildInstrumentSynth(instrumentType) {
       envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.8 },
     };
     filter = new Tone.Filter({ frequency: 400, type: "lowpass" });
-  } else if (instrumentType === "guitar-acoustic") {
+  } else if (instrumentType === "guitar-electric") {
     config = {
       oscillator: { type: "square" },
-      envelope: { attack: 0.005, decay: 0.15, sustain: 0, release: 0.5 },
+      envelope: { attack: 0.003, decay: 0.12, sustain: 0.05, release: 0.4 },
     };
-    filter = new Tone.Filter({ frequency: 8000, type: "highpass" });
+    filter = new Tone.Filter({ frequency: 10000, type: "highpass" });
   } else if (instrumentType === "piano") {
     config = {
       oscillator: { type: "sine" },
@@ -273,9 +273,9 @@ export function useAudioManager() {
     const wasDistortion = distortionNode.distortion;
     const wasWet = distortionNode.wet.value;
 
-    if (currentInstrument === "guitar-acoustic") {
-      distortionNode.distortion = 0.6;
-      distortionNode.wet.value = 0.7;
+    if (currentInstrument === "guitar-electric") {
+      distortionNode.distortion = 0.5;
+      distortionNode.wet.value = 0.6;
     }
 
     [["G2","8n"],["B2","8n"],["D3","8n"],["G3","4n"]].forEach(([n,d],i) => s.triggerAttackRelease(n, d, t0 + i*0.18));

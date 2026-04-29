@@ -14,11 +14,11 @@ const INSTRUMENTO_INFO = {
     emoji: "🎸",
     color: "#3b82f6",
   },
-  "guitar-acoustic": {
-    name: "🎸 Guitarra Acústica",
-    desc: "Sonido cálido y natural",
+  "guitar-electric": {
+    name: "🎸 Guitarra Eléctrica",
+    desc: "Sonido brillante y potente",
     emoji: "🎸",
-    color: "#a855f7",
+    color: "#ec4899",
   },
 };
 
