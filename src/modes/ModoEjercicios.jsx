@@ -93,8 +93,15 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
   }, [nivelSeleccionado, setStore]);
 
   const newQ = useCallback(() => {
-    // Move cfg and rndTabla logic inside callback to avoid circular dependency with store
-    const cfg = NIVELES[nivelSeleccionado - 1];
+    // Ensure nivelSeleccionado is valid
+    const validNivel = Math.max(1, Math.min(5, nivelSeleccionado));
+    const cfg = NIVELES[validNivel - 1];
+
+    if (!cfg || !cfg.tablas) {
+      console.error("[ModoEjercicios] Config not found for nivel:", validNivel);
+      return;
+    }
+
     const err = store.erroresPorTabla;
     const weighted = cfg.tablas.flatMap((t) => {
       const e = err[t];

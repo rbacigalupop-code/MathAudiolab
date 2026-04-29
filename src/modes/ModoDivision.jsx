@@ -110,24 +110,26 @@ export default function ModoDivision({ store, setStore, audio, instrumento, setR
   }, [nivelSeleccionado, setStore]);
 
   const newQ = useCallback(() => {
-    // HOTFIX: Don't call getWeightedProblem (prevents re-render loop with store changes)
-    // Just generate random questions consistently
-    let dividendo, divisor, respuestaEsperada;
+    // Ensure nivelSeleccionado is valid
+    const validNivel = Math.max(1, Math.min(5, nivelSeleccionado));
+    const cfg = NIVELES_DIVISION[validNivel - 1];
+
+    if (!cfg) {
+      console.error("[ModoDivision] Config not found for nivel:", validNivel);
+      return;
+    }
 
     // Generar nueva división aleatoria
-    const cfg = NIVELES_DIVISION[nivelSeleccionado - 1];
     const newDivisor = Math.floor(Math.random() * (cfg.maxDsr - cfg.minDsr + 1)) + cfg.minDsr;
     const resultado = Math.floor(Math.random() * (cfg.maxDiv - cfg.minDiv + 1)) + cfg.minDiv;
-    dividendo = resultado * newDivisor;
-    divisor = newDivisor;
-    respuestaEsperada = resultado;
+    const dividendo = resultado * newDivisor;
 
     setDividendo(dividendo);
-    setDivisor(divisor);
-    setRespuestaEsperada(respuestaEsperada);
+    setDivisor(newDivisor);
+    setRespuestaEsperada(resultado);
     setInput("");
     setEstado("esperando");
-  }, [nivelSeleccionado]);  // Only depend on nivelSeleccionado, NOT getWeightedProblem
+  }, [nivelSeleccionado]);
 
   useEffect(() => {
     newQ();
