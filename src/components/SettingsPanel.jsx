@@ -2,7 +2,8 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BandGuideModal } from "./BandGuideModal";
 import AudioLegendModal from "./AudioLegendModal";
-import { AnalyticsDashboard } from "./AnalyticsDashboard";
+import { AnalyticsDashboardV2 } from "./AnalyticsDashboardV2";
+import { GamificacionAvanzada } from "./GamificacionAvanzada";
 
 const PROFILES = [
   { id: "cristobal", label: "👨 Cristóbal" },
@@ -14,6 +15,7 @@ export function SettingsPanel({ store, setStore, profile, switchProfile, zenMode
   const [showBandGuide, setShowBandGuide] = useState(false);
   const [showAudioLegend, setShowAudioLegend] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
+  const [showGamificacion, setShowGamificacion] = useState(false);
 
   const settings = store.settings || { volumen: 0.7, bpm: 100 };
 
@@ -297,6 +299,32 @@ export function SettingsPanel({ store, setStore, profile, switchProfile, zenMode
                 📊 Analytics Dashboard
               </button>
 
+              {/* Gamificación Button */}
+              <button
+                onClick={() => setShowGamificacion(true)}
+                style={{
+                  width: "100%",
+                  padding: "10px",
+                  marginBottom: 8,
+                  borderRadius: 8,
+                  border: "1.5px solid #f59e0b",
+                  background: "#f59e0b1a",
+                  color: "#f59e0b",
+                  fontWeight: 700,
+                  fontSize: "12px",
+                  cursor: "pointer",
+                  transition: "all .2s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "#f59e0b33";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "#f59e0b1a";
+                }}
+              >
+                🎮 Gamificación Avanzada
+              </button>
+
               {/* Band Guide Button */}
               <button
                 onClick={() => setShowBandGuide(true)}
@@ -356,11 +384,19 @@ export function SettingsPanel({ store, setStore, profile, switchProfile, zenMode
         onClose={() => setShowBandGuide(false)}
       />
 
-      {/* Analytics Dashboard */}
+      {/* Analytics Dashboard V2 */}
       {showAnalytics && (
-        <AnalyticsDashboard
+        <AnalyticsDashboardV2
           store={store}
           onClose={() => setShowAnalytics(false)}
+        />
+      )}
+
+      {/* Gamificación Avanzada */}
+      {showGamificacion && (
+        <GamificacionAvanzada
+          store={store}
+          onClose={() => setShowGamificacion(false)}
         />
       )}
     </>
