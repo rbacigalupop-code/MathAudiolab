@@ -284,6 +284,7 @@ function MainApp({ store, setStore, profile, switchProfile }) {
                 setStore={setStore}
                 audio={audio}
                 setRockActive={setRockActive}
+                onBack={() => setLeccionSeleccionada(null)}
               />
             </motion.div>
           </AnimatePresence>

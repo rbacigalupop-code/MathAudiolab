@@ -9,7 +9,7 @@ import { StatCard } from "../components/StatCard";
  * Modo de Lecciones Inmersivas con sincronización BPM
  * Integra YouTube + Tone.js + Ejercicios matemáticos
  */
-export default function ModoLecciones({ lessonData, store, setStore, audio, setRockActive }) {
+export default function ModoLecciones({ lessonData, store, setStore, audio, setRockActive, onBack }) {
   const [estado, setEstado] = useState("esperando");
   const [input, setInput] = useState("");
   const [score, setScore] = useState(0);
@@ -176,7 +176,45 @@ export default function ModoLecciones({ lessonData, store, setStore, audio, setR
   if (!operacionActual) return null;
 
   return (
-    <div style={{ padding: "16px", maxWidth: "620px", margin: "0 auto" }}>
+    <div style={{ padding: "16px", maxWidth: "620px", margin: "0 auto", position: "relative" }}>
+      {/* Botón de cerrar (X) - esquina superior derecha */}
+      {onBack && (
+        <motion.button
+          whileTap={{ scale: 0.9 }}
+          onClick={onBack}
+          style={{
+            position: "absolute",
+            top: 16,
+            right: 16,
+            width: 32,
+            height: 32,
+            borderRadius: "50%",
+            border: "2px solid #ef4444",
+            background: "#1e293b",
+            color: "#ef4444",
+            fontSize: "20px",
+            fontWeight: "bold",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            transition: "all 0.2s",
+            zIndex: 50,
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "#ef4444";
+            e.currentTarget.style.color = "#fff";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "#1e293b";
+            e.currentTarget.style.color = "#ef4444";
+          }}
+          title="Volver atrás"
+        >
+          ✕
+        </motion.button>
+      )}
+
       {/* Encabezado de Lección */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
