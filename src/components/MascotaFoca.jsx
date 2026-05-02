@@ -8,7 +8,6 @@ import {
   MASCOTA_SIZE,
   getTooltipForMode,
 } from "../constants/mascota";
-import { useTextToSpeech } from "../hooks/useTextToSpeech";
 import AudioLegendModal from "./AudioLegendModal";
 
 /**
@@ -38,7 +37,6 @@ const MascotaFoca = React.memo(() => {
   const [showHintBubble, setShowHintBubble] = useState(false);
   const tooltipTimeoutRef = useRef(null);
   const hintTimeoutRef = useRef(null);
-  const { speak, stop, isSpeaking } = useTextToSpeech();
 
   // Detectar dispositivo móvil para responsive scaling
   useEffect(() => {
@@ -84,10 +82,6 @@ const MascotaFoca = React.memo(() => {
     if (currentHint) {
       setShowHintBubble(true);
 
-      // Hablar la pista automáticamente
-      const hintText = `Pista: ${currentHint}`;
-      speak(hintText, "es", 0.9, 1, 0.7);
-
       // Auto-cerrar la pista después de 6 segundos
       hintTimeoutRef.current = setTimeout(() => {
         setShowHintBubble(false);
@@ -99,7 +93,7 @@ const MascotaFoca = React.memo(() => {
         }
       };
     }
-  }, [currentHint, speak]);
+  }, [currentHint]);
 
   const handleClick = () => {
     setShowTooltip(!showTooltip);
