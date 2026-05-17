@@ -36,20 +36,21 @@ const NIVELES = [
   { id: 5, label: "Nivel 5", desc: "Todas", tablas: [2, 3, 4, 5, 6, 7, 8, 9, 10] },
 ];
 
+// Ordenados por complejidad pedagógica: de lo más básico a lo más complejo
 const MODOS = [
-  { id: "tabla", label: "📖 Tabla" },
-  { id: "ejercicios", label: "✏️ Multiplicar" },
-  { id: "sumas", label: "➕ Sumas" },
-  { id: "restas", label: "➖ Restas" },
-  { id: "potencias", label: "⚡ Potencias" },
-  { id: "division", label: "➗ División" },
-  { id: "fracciones", label: "🔀 Fracciones" },
-  { id: "escuchar", label: "👂 Escuchar" },
-  { id: "batalla", label: "⚔️ Batalla" },
+  { id: "sumas", label: "➕ Sumas" },           // 1. Operación base
+  { id: "restas", label: "➖ Restas" },         // 2. Inversa de sumar
+  { id: "ejercicios", label: "✖️ Multiplicar" }, // 3. Suma repetida
+  { id: "tabla", label: "📖 Tabla" },           // 4. Referencia para multiplicar
+  { id: "division", label: "➗ División" },     // 5. Inversa de multiplicar
+  { id: "potencias", label: "⚡ Potencias" },   // 6. Multiplicación repetida
+  { id: "fracciones", label: "🔀 Fracciones" }, // 7. Partes de un entero
+  { id: "escuchar", label: "👂 Escuchar" },     // 8. Reconocer auditivamente
+  { id: "batalla", label: "⚔️ Batalla" },       // 9. Reto combinado
 ];
 
 export function MainApp({ store, setStore, profile, switchProfile, onProfileChange, onSwitchToParent }) {
-  const [modo, setModo] = useState("ejercicios");
+  const [modo, setModo] = useState("sumas");
   const [instrumento, setInstrumento] = useState("piano");
   const [reloading, setReloading] = useState(false);
   const [rockActive, setRockActive] = useState(false);

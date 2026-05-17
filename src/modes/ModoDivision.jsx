@@ -64,8 +64,12 @@ export default function ModoDivision({ store, setStore, audio, instrumento, setR
   // Hook para mascota interactiva
   const { triggerPunch, setCurrentBanda, updateHint, resetHints } = useMascotaContext();
 
-  // Hook para pistas progresivas (10 segundos de espera antes de la primera pista)
-  const { currentHint, resetHints: resetHintsHook } = useProgressiveHints("division", null, 10000);
+  // Hook para pistas progresivas (10s espera + avance por errores)
+  const {
+    currentHint,
+    resetHints: resetHintsHook,
+    advanceHintOnError,
+  } = useProgressiveHints("division", null, 10000);
 
   // Sincronizar el hint del hook con el contexto de mascota
   useEffect(() => {
@@ -195,6 +199,8 @@ export default function ModoDivision({ store, setStore, audio, instrumento, setR
     } else {
       setEstado("incorrecto");
       setStreak(0);
+      // Avanzar pista pedagógica: cada error muestra una pista más concreta
+      advanceHintOnError();
       // Trigger error filter for sensory feedback
       audio.triggerErrorFilter(500);
       await audio.playError(instrumento);
@@ -203,7 +209,7 @@ export default function ModoDivision({ store, setStore, audio, instrumento, setR
       timeoutsRef.current.push(idClear);
       setStore((prev) => ({ ...prev, rachaGlobal: 0 }));
     }
-  }, [input, divisor, respuestaEsperada, dividendo, streak, audio, instrumento, setStore, setRockActive, recordError, triggerPunch]);
+  }, [input, divisor, respuestaEsperada, dividendo, streak, audio, instrumento, setStore, setRockActive, recordError, triggerPunch, advanceHintOnError]);
 
   const handleKey = (e) => {
     if (e.key === "Enter") estado === "correcto" ? newQ() : check();

@@ -6,6 +6,7 @@ import { InstrumentoIndicator } from "../components/InstrumentoIndicator";
 import { useWeightedSampling } from "../hooks/useWeightedSampling";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useMascotaContext } from "../contexts/MascotaFocaContext";
+import { useProgressiveHints } from "../hooks/useProgressiveHints";
 
 const NIVELES_SUMAS = [
   { id: 1, label: "Nivel 1", desc: "Números 1-10" },
@@ -38,7 +39,19 @@ export default function ModoSumas({ store, setStore, audio, instrumento, setRock
 
   const { getWeightedProblem, recordAttempt } = useWeightedSampling(store);
   const { recordError } = useLocalStorage();
-  const { triggerPunch } = useMascotaContext();
+  const { triggerPunch, updateHint, resetHints } = useMascotaContext();
+
+  // Pistas progresivas: aparecen al demorar (10s) o al fallar
+  const {
+    currentHint,
+    resetHints: resetHintsHook,
+    advanceHintOnError,
+  } = useProgressiveHints("sumas", null, 10000);
+
+  // Sincronizar hint local con la mascota
+  useEffect(() => {
+    if (currentHint) updateHint(currentHint);
+  }, [currentHint, updateHint]);
 
   // Ensure cfg is valid - use proper bounds checking (AFTER all hooks)
   const safeLevelIndex = Math.max(0, Math.min(4, nivelSeleccionado - 1));
@@ -115,6 +128,9 @@ export default function ModoSumas({ store, setStore, audio, instrumento, setRock
       setStreak(ns);
       sessionRef.current.correctas++;
       triggerPunch();
+      // Resetear pistas pedagógicas al acertar
+      resetHints();
+      resetHintsHook();
 
       setStore((prev) => {
         const next = {
@@ -149,6 +165,8 @@ export default function ModoSumas({ store, setStore, audio, instrumento, setRock
     } else {
       setEstado("incorrecto");
       setStreak(0);
+      // Avanzar pista pedagógica: cada error muestra una pista más concreta
+      advanceHintOnError();
       // Trigger error filter for sensory feedback
       audio.triggerErrorFilter(500);
       await audio.playError(instrumento);
@@ -157,7 +175,7 @@ export default function ModoSumas({ store, setStore, audio, instrumento, setRock
       timeoutsRef.current.push(idClear);
       setStore((prev) => ({ ...updatedStoreFromRecord, rachaGlobal: 0 }));
     }
-  }, [input, num1, num2, correcto, streak, audio, instrumento, setStore, setRockActive, recordAttempt]);
+  }, [input, num1, num2, correcto, streak, audio, instrumento, setStore, setRockActive, recordAttempt, advanceHintOnError, resetHints, resetHintsHook]);
 
   const handleKey = (e) => {
     if (e.key === "Enter") estado === "correcto" ? newQ() : check();

@@ -52,8 +52,12 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
   // Hook para mascota interactiva
   const { triggerPunch, setCurrentBanda, updateHint, resetHints } = useMascotaContext();
 
-  // Hook para pistas progresivas (10 segundos de espera antes de la primera pista)
-  const { currentHint, resetHints: resetHintsHook } = useProgressiveHints("ejercicios", null, 10000);
+  // Hook para pistas progresivas (10s espera + avance por errores)
+  const {
+    currentHint,
+    resetHints: resetHintsHook,
+    advanceHintOnError,
+  } = useProgressiveHints("ejercicios", null, 10000);
 
   // Sincronizar el hint del hook con el contexto de mascota
   useEffect(() => {
@@ -211,6 +215,8 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
     } else {
       setEstado("incorrecto");
       setStreak(0);
+      // Avanzar pista pedagógica: cada error muestra una pista más concreta
+      advanceHintOnError();
       // Trigger error filter for sensory feedback
       audio.triggerErrorFilter(500);
       await audio.playError(instrumento);
@@ -219,7 +225,7 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
       timeoutsRef.current.push(idClear);
       setStore((prev) => ({ ...prev, rachaGlobal: 0 }));
     }
-  }, [input, factor, tabla, streak, audio, instrumento, setStore]);
+  }, [input, factor, tabla, streak, audio, instrumento, setStore, advanceHintOnError]);
 
   const playHint = useCallback(async () => {
     if (!factor) return;
