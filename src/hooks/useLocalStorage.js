@@ -280,6 +280,313 @@ export function useLocalStorage() {
     return getAllProfiles().sort((a, b) => b.createdAt - a.createdAt);
   }, []);
 
+  /**
+   * ===== PARENT/TEACHER SYSTEM =====
+   */
+
+  /**
+   * Generate a unique parent ID
+   */
+  function generateParentId() {
+    return `parent-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  /**
+   * Get parent registry from localStorage
+   */
+  function getParentRegistry() {
+    try {
+      const stored = localStorage.getItem("__mal_parents_registry");
+      if (!stored) {
+        const empty = { version: 1, parents: [] };
+        localStorage.setItem("__mal_parents_registry", JSON.stringify(empty));
+        return empty;
+      }
+      return JSON.parse(stored);
+    } catch {
+      return { version: 1, parents: [] };
+    }
+  }
+
+  /**
+   * Register a new parent account
+   * @param {string} email - Parent email
+   * @param {string} password - Parent password (will be hashed with btoa)
+   * @param {string} name - Parent full name
+   * @returns {object|null} New parent object or null if email already exists
+   */
+  const registerParent = useCallback((email, password, name) => {
+    try {
+      if (!email || !password || !name) {
+        console.warn("Missing parent registration fields");
+        return null;
+      }
+
+      const registry = getParentRegistry();
+
+      // Check if email already exists
+      if (registry.parents.some(p => p.email.toLowerCase() === email.toLowerCase())) {
+        console.warn("Email already registered");
+        return null;
+      }
+
+      // Hash password using btoa (MVP - NOT SECURE)
+      const passwordHash = btoa(password);
+
+      const newParent = {
+        id: generateParentId(),
+        email: email.toLowerCase(),
+        name,
+        password: passwordHash,
+        studentIds: [],
+        createdAt: Date.now(),
+        lastLogin: null
+      };
+
+      registry.parents.push(newParent);
+      localStorage.setItem("__mal_parents_registry", JSON.stringify(registry));
+
+      return newParent;
+    } catch (e) {
+      console.warn("Register parent error:", e);
+      return null;
+    }
+  }, []);
+
+  /**
+   * Authenticate a parent and create session
+   * @param {string} email - Parent email
+   * @param {string} password - Parent password (unhashed)
+   * @returns {object|null} Parent session object or null if authentication fails
+   */
+  const loginParent = useCallback((email, password) => {
+    try {
+      const registry = getParentRegistry();
+      const parent = registry.parents.find(p => p.email.toLowerCase() === email.toLowerCase());
+
+      if (!parent) {
+        console.warn("Parent not found");
+        return null;
+      }
+
+      // Verify password
+      const passwordHash = btoa(password);
+      if (parent.password !== passwordHash) {
+        console.warn("Wrong password");
+        return null;
+      }
+
+      // Create session with 24-hour expiry
+      const now = Date.now();
+      const expiresAt = now + (24 * 60 * 60 * 1000); // 24 hours
+
+      const session = {
+        parentId: parent.id,
+        email: parent.email,
+        name: parent.name,
+        studentIds: parent.studentIds,
+        selectedStudentId: parent.studentIds.length > 0 ? parent.studentIds[0] : null,
+        loginTime: now,
+        expiresAt
+      };
+
+      localStorage.setItem("__mal_parent_session", JSON.stringify(session));
+
+      // Update lastLogin
+      parent.lastLogin = now;
+      localStorage.setItem("__mal_parents_registry", JSON.stringify(registry));
+
+      return session;
+    } catch (e) {
+      console.warn("Login parent error:", e);
+      return null;
+    }
+  }, []);
+
+  /**
+   * Get current parent session if valid
+   * @returns {object|null} Parent session or null if no valid session
+   */
+  const getParentSession = useCallback(() => {
+    try {
+      const stored = localStorage.getItem("__mal_parent_session");
+      if (!stored) return null;
+
+      const session = JSON.parse(stored);
+      const now = Date.now();
+
+      // Check if session expired
+      if (session.expiresAt && now > session.expiresAt) {
+        logoutParent();
+        return null;
+      }
+
+      return session;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  /**
+   * Logout current parent and clear session
+   */
+  const logoutParent = useCallback(() => {
+    try {
+      localStorage.removeItem("__mal_parent_session");
+    } catch (e) {
+      console.warn("Logout parent error:", e);
+    }
+  }, []);
+
+  /**
+   * Assign a student to a parent
+   * @param {string} parentId - Parent ID
+   * @param {string} studentId - Student profile ID
+   * @returns {boolean} Success status
+   */
+  const assignStudentToParent = useCallback((parentId, studentId) => {
+    try {
+      // Verify student exists
+      const allProfiles = getAllProfiles();
+      if (!allProfiles.some(p => p.id === studentId)) {
+        console.warn("Student not found");
+        return false;
+      }
+
+      const registry = getParentRegistry();
+      const parent = registry.parents.find(p => p.id === parentId);
+
+      if (!parent) {
+        console.warn("Parent not found");
+        return false;
+      }
+
+      // Check if already assigned
+      if (parent.studentIds.includes(studentId)) {
+        return true; // Already assigned
+      }
+
+      parent.studentIds.push(studentId);
+      localStorage.setItem("__mal_parents_registry", JSON.stringify(registry));
+
+      // Update session if this is the logged-in parent
+      const session = getParentSession();
+      if (session && session.parentId === parentId) {
+        session.studentIds = parent.studentIds;
+        localStorage.setItem("__mal_parent_session", JSON.stringify(session));
+      }
+
+      return true;
+    } catch (e) {
+      console.warn("Assign student error:", e);
+      return false;
+    }
+  }, []);
+
+  /**
+   * Remove a student from parent's access
+   * @param {string} parentId - Parent ID
+   * @param {string} studentId - Student profile ID
+   * @returns {boolean} Success status
+   */
+  const removeStudentFromParent = useCallback((parentId, studentId) => {
+    try {
+      const registry = getParentRegistry();
+      const parent = registry.parents.find(p => p.id === parentId);
+
+      if (!parent) {
+        console.warn("Parent not found");
+        return false;
+      }
+
+      parent.studentIds = parent.studentIds.filter(id => id !== studentId);
+      localStorage.setItem("__mal_parents_registry", JSON.stringify(registry));
+
+      // Update session if this is the logged-in parent
+      const session = getParentSession();
+      if (session && session.parentId === parentId) {
+        session.studentIds = parent.studentIds;
+        if (session.selectedStudentId === studentId) {
+          session.selectedStudentId = parent.studentIds.length > 0 ? parent.studentIds[0] : null;
+        }
+        localStorage.setItem("__mal_parent_session", JSON.stringify(session));
+      }
+
+      return true;
+    } catch (e) {
+      console.warn("Remove student error:", e);
+      return false;
+    }
+  }, []);
+
+  /**
+   * Get all students assigned to a parent
+   * @param {string} parentId - Parent ID
+   * @returns {Array} Array of student profile objects
+   */
+  const getParentStudents = useCallback((parentId) => {
+    try {
+      const registry = getParentRegistry();
+      const parent = registry.parents.find(p => p.id === parentId);
+
+      if (!parent) {
+        console.warn("Parent not found");
+        return [];
+      }
+
+      const allProfiles = getAllProfiles();
+      return allProfiles.filter(p => parent.studentIds.includes(p.id));
+    } catch {
+      return [];
+    }
+  }, []);
+
+  /**
+   * Load student data for parent viewing
+   * @param {string} studentId - Student profile ID
+   * @returns {object} Student profile data or null if not found
+   */
+  const loadStudentDataForParent = useCallback((studentId) => {
+    try {
+      // Verify student exists in registry
+      const allProfiles = getAllProfiles();
+      const profile = allProfiles.find(p => p.id === studentId);
+      if (!profile) return null;
+
+      // Load student data
+      const storeKey = getStoreKey(studentId);
+      const saved = localStorage.getItem(storeKey);
+      return saved ? JSON.parse(saved) : INITIAL_STATE;
+    } catch (e) {
+      console.warn("Load student data error:", e);
+      return null;
+    }
+  }, []);
+
+  /**
+   * Update selected student in parent session
+   * @param {string} studentId - Student profile ID
+   * @returns {boolean} Success status
+   */
+  const setParentSelectedStudent = useCallback((studentId) => {
+    try {
+      const session = getParentSession();
+      if (!session) return false;
+
+      if (!session.studentIds.includes(studentId)) {
+        console.warn("Student not assigned to parent");
+        return false;
+      }
+
+      session.selectedStudentId = studentId;
+      localStorage.setItem("__mal_parent_session", JSON.stringify(session));
+      return true;
+    } catch (e) {
+      console.warn("Set selected student error:", e);
+      return false;
+    }
+  }, []);
+
   return {
     store,
     updateStore,
@@ -289,6 +596,16 @@ export function useLocalStorage() {
     switchProfile,
     createProfile,
     deleteProfile,
-    getProfiles
+    getProfiles,
+    // Parent system
+    registerParent,
+    loginParent,
+    getParentSession,
+    logoutParent,
+    assignStudentToParent,
+    removeStudentFromParent,
+    getParentStudents,
+    loadStudentDataForParent,
+    setParentSelectedStudent
   };
 }

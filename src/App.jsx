@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import * as Tone from "tone";
 
@@ -12,6 +12,7 @@ import { MediaPanel } from "./components/MediaPanel";
 import { LessonSelector } from "./components/LessonSelector";
 import SplashScreen from "./components/SplashScreen";
 import LessonReader from "./components/LessonReader";
+import AuthGate from "./components/AuthGate";
 import ModoTabla from "./modes/ModoTabla";
 import ModoEjercicios from "./modes/ModoEjercicios";
 import ModoSumas from "./modes/ModoSumas";
@@ -47,7 +48,7 @@ const MODOS = [
   { id: "batalla", label: "⚔️ Batalla" },
 ];
 
-function MainApp({ store, setStore, profile, switchProfile }) {
+export function MainApp({ store, setStore, profile, switchProfile, onProfileChange, onSwitchToParent }) {
   const [modo, setModo] = useState("ejercicios");
   const [instrumento, setInstrumento] = useState("piano");
   const [reloading, setReloading] = useState(false);
@@ -356,12 +357,32 @@ function MainApp({ store, setStore, profile, switchProfile }) {
 
 export default function App() {
   const [ready, setReady] = useState(false);
+  const [selectedProfile, setSelectedProfile] = useState(null);
   const { store, updateStore, profile, switchProfile } = useLocalStorage();
 
   if (!ready) return <SplashScreen onReady={() => setReady(true)} />;
+
+  // If a student profile is selected, show MainApp
+  if (selectedProfile) {
+    return (
+      <MascotaFocaProvider>
+        <MainApp
+          store={store}
+          setStore={updateStore}
+          profile={profile}
+          switchProfile={switchProfile}
+          onProfileChange={(newProfile) => setSelectedProfile(newProfile)}
+          onSwitchToParent={() => setSelectedProfile(null)}
+        />
+        <MascotaFoca />
+      </MascotaFocaProvider>
+    );
+  }
+
+  // Otherwise, show AuthGate for mode selection
   return (
     <MascotaFocaProvider>
-      <MainApp store={store} setStore={updateStore} profile={profile} switchProfile={switchProfile} />
+      <AuthGate onProfileSelected={(profileId) => setSelectedProfile(profileId)} />
       <MascotaFoca />
     </MascotaFocaProvider>
   );
