@@ -1,14 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BandGuideModal } from "./BandGuideModal";
 import AudioLegendModal from "./AudioLegendModal";
 import { AnalyticsDashboardV2 } from "./AnalyticsDashboardV2";
 import { GamificacionAvanzada } from "./GamificacionAvanzada";
-
-const PROFILES = [
-  { id: "cristobal", label: "👨 Cristóbal" },
-  { id: "grace", label: "👩 Grace" },
-];
+import { NewProfileModal } from "./NewProfileModal";
 
 export function SettingsPanel({ store, setStore, profile, switchProfile, zenMode, setZenMode }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -16,6 +12,26 @@ export function SettingsPanel({ store, setStore, profile, switchProfile, zenMode
   const [showAudioLegend, setShowAudioLegend] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showGamificacion, setShowGamificacion] = useState(false);
+  const [showNewProfileModal, setShowNewProfileModal] = useState(false);
+  const [profiles, setProfiles] = useState([]);
+
+  // Load profiles on mount
+  useEffect(() => {
+    loadProfiles();
+  }, []);
+
+  const loadProfiles = () => {
+    try {
+      const registry = localStorage.getItem("__mal_profiles_registry");
+      if (registry) {
+        const parsed = JSON.parse(registry);
+        const sorted = parsed.profiles.sort((a, b) => a.createdAt - b.createdAt);
+        setProfiles(sorted);
+      }
+    } catch (e) {
+      console.error("Load profiles error:", e);
+    }
+  };
 
   const settings = store.settings || { volumen: 0.7, bpm: 100 };
 
@@ -36,6 +52,57 @@ export function SettingsPanel({ store, setStore, profile, switchProfile, zenMode
   const handleProfileSwitch = (newProfile) => {
     if (switchProfile) {
       switchProfile(newProfile);
+    }
+  };
+
+  const handleCreateProfile = (name, emoji, color) => {
+    try {
+      // Generate profile ID
+      let profileId = name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+      const allIds = profiles.map(p => p.id);
+      let finalId = profileId;
+      let counter = 1;
+      while (allIds.includes(finalId)) {
+        finalId = `${profileId}-${counter}`;
+        counter++;
+      }
+
+      // Create new profile
+      const newProfile = {
+        id: finalId,
+        label: `${emoji} ${name}`,
+        emoji,
+        color,
+        createdAt: Date.now()
+      };
+
+      // Add to registry
+      const registry = JSON.parse(localStorage.getItem("__mal_profiles_registry"));
+      registry.profiles.push(newProfile);
+      localStorage.setItem("__mal_profiles_registry", JSON.stringify(registry));
+
+      // Initialize profile data
+      const INITIAL_STATE = {
+        version: 1,
+        nivel: 1,
+        tabla: 2,
+        sesiones: [],
+        erroresPorTabla: {},
+        rachaGlobal: 0,
+        mejorRacha: 0,
+        weak_points: {},
+        unlocked_effects: [],
+        errorLog: {},
+        preferencias: { zenMode: true },
+      };
+      localStorage.setItem(`__mal_${finalId}_v1`, JSON.stringify(INITIAL_STATE));
+
+      // Reload profiles
+      loadProfiles();
+      return true;
+    } catch (e) {
+      console.error("Create profile error:", e);
+      return false;
     }
   };
 
@@ -116,28 +183,96 @@ export function SettingsPanel({ store, setStore, profile, switchProfile, zenMode
                   <div style={{ fontSize: "12px", color: "#94a3b8", fontWeight: 700, marginBottom: 8 }}>
                     👤 Perfil Activo
                   </div>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    {PROFILES.map((p) => (
-                      <button
-                        key={p.id}
-                        onClick={() => handleProfileSwitch(p.id)}
-                        style={{
-                          flex: 1,
-                          padding: "8px",
-                          borderRadius: 6,
-                          border: profile === p.id ? "2px solid #f97316" : "1px solid #334155",
-                          background: profile === p.id ? "#f973161a" : "#1e293b",
-                          color: profile === p.id ? "#f97316" : "#94a3b8",
-                          fontWeight: 700,
-                          fontSize: "12px",
-                          cursor: "pointer",
-                          transition: "all 0.2s",
-                        }}
-                      >
-                        {p.label}
-                      </button>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8, marginBottom: 8, maxHeight: 150, overflowY: "auto" }}>
+                    {profiles.map((p) => (
+                      <div key={p.id} style={{ position: "relative" }}>
+                        <button
+                          onClick={() => handleProfileSwitch(p.id)}
+                          style={{
+                            width: "100%",
+                            padding: "10px 8px",
+                            borderRadius: 6,
+                            border: profile === p.id ? "2px solid #f97316" : "1px solid #334155",
+                            background: profile === p.id ? "#f973161a" : "#1e293b",
+                            color: profile === p.id ? "#f97316" : "#94a3b8",
+                            fontWeight: 700,
+                            fontSize: "12px",
+                            cursor: "pointer",
+                            transition: "all 0.2s",
+                            textAlign: "center",
+                          }}
+                        >
+                          <div style={{ fontSize: "14px", marginBottom: 2 }}>{p.emoji}</div>
+                          {p.label.split(" ").slice(1).join(" ")}
+                        </button>
+                        {/* Delete button for non-active profiles */}
+                        {profile !== p.id && profiles.length > 1 && (
+                          <button
+                            onClick={() => {
+                              const confirmDelete = window.confirm(`¿Eliminar perfil "${p.label}"?`);
+                              if (confirmDelete) {
+                                try {
+                                  const registry = JSON.parse(localStorage.getItem("__mal_profiles_registry"));
+                                  registry.profiles = registry.profiles.filter(profile => profile.id !== p.id);
+                                  localStorage.setItem("__mal_profiles_registry", JSON.stringify(registry));
+                                  localStorage.removeItem(`__mal_${p.id}_v1`);
+                                  loadProfiles();
+                                } catch (e) {
+                                  console.error("Delete error:", e);
+                                }
+                              }
+                            }}
+                            style={{
+                              position: "absolute",
+                              top: -8,
+                              right: -8,
+                              width: 24,
+                              height: 24,
+                              borderRadius: "50%",
+                              background: "#dc2626",
+                              border: "none",
+                              color: "#fff",
+                              fontSize: "12px",
+                              fontWeight: 900,
+                              cursor: "pointer",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              padding: 0,
+                            }}
+                            title="Eliminar perfil"
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
                     ))}
                   </div>
+                  <button
+                    onClick={() => setShowNewProfileModal(true)}
+                    style={{
+                      width: "100%",
+                      padding: "8px",
+                      borderRadius: 6,
+                      border: "1.5px dashed #475569",
+                      background: "#1e293b",
+                      color: "#94a3b8",
+                      fontWeight: 700,
+                      fontSize: "12px",
+                      cursor: "pointer",
+                      transition: "all 0.2s",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = "#f97316";
+                      e.currentTarget.style.color = "#f97316";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = "#475569";
+                      e.currentTarget.style.color = "#94a3b8";
+                    }}
+                  >
+                    ➕ Nuevo Perfil
+                  </button>
                 </div>
               )}
 
@@ -399,6 +534,13 @@ export function SettingsPanel({ store, setStore, profile, switchProfile, zenMode
           onClose={() => setShowGamificacion(false)}
         />
       )}
+
+      {/* New Profile Modal */}
+      <NewProfileModal
+        isOpen={showNewProfileModal}
+        onClose={() => setShowNewProfileModal(false)}
+        onCreate={handleCreateProfile}
+      />
     </>
   );
 }

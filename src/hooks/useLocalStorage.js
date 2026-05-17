@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 
 const SCHEMA_VERSION = 1;
 const PROFILE_KEY = "__mal_profile";
+const PROFILES_REGISTRY_KEY = "__mal_profiles_registry";
 
 const INITIAL_STATE = {
   version: SCHEMA_VERSION,
@@ -16,6 +17,60 @@ const INITIAL_STATE = {
   errorLog: {},  // New: granular error tracking
   preferencias: { zenMode: true },  // New: user preferences
 };
+
+// Default color palette for profiles
+const PROFILE_COLORS = ["#3b82f6", "#ec4899", "#06b6d4", "#8b5cf6", "#f59e0b", "#22c55e"];
+const PROFILE_EMOJIS = ["👨", "👩", "🧒", "👦", "👧", "🎓"];
+
+/**
+ * Initialize default profiles on first load
+ */
+function initializeDefaultProfiles() {
+  const registry = {
+    version: 1,
+    profiles: [
+      { id: "cristobal", label: "👨 Cristóbal", emoji: "👨", color: "#3b82f6", createdAt: Date.now() },
+      { id: "grace", label: "👩 Grace", emoji: "👩", color: "#ec4899", createdAt: Date.now() }
+    ]
+  };
+  localStorage.setItem(PROFILES_REGISTRY_KEY, JSON.stringify(registry));
+  return registry;
+}
+
+/**
+ * Get all profiles from registry
+ */
+function getAllProfiles() {
+  try {
+    const stored = localStorage.getItem(PROFILES_REGISTRY_KEY);
+    if (!stored) {
+      return initializeDefaultProfiles().profiles;
+    }
+    const parsed = JSON.parse(stored);
+    return parsed.profiles || [];
+  } catch {
+    return initializeDefaultProfiles().profiles;
+  }
+}
+
+/**
+ * Generate a unique profile ID from a name
+ */
+function generateProfileId(name) {
+  let id = name.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+
+  // Check for collisions
+  const allProfiles = getAllProfiles();
+  let finalId = id;
+  let counter = 1;
+
+  while (allProfiles.some(p => p.id === finalId)) {
+    finalId = `${id}-${counter}`;
+    counter++;
+  }
+
+  return finalId;
+}
 
 /**
  * Get the current profile from localStorage
@@ -121,6 +176,13 @@ export function useLocalStorage() {
    */
   const switchProfile = useCallback((newProfile) => {
     try {
+      // Verify profile exists in registry
+      const allProfiles = getAllProfiles();
+      if (!allProfiles.some(p => p.id === newProfile)) {
+        console.warn(`Profile ${newProfile} not found in registry`);
+        return false;
+      }
+
       localStorage.setItem(PROFILE_KEY, newProfile);
       setProfile(newProfile);
 
@@ -129,9 +191,93 @@ export function useLocalStorage() {
       const saved = localStorage.getItem(newStoreKey);
       const newStore = saved ? JSON.parse(saved) : INITIAL_STATE;
       setStore(newStore);
+      return true;
     } catch (e) {
       console.warn("Profile switch error:", e);
+      return false;
     }
+  }, []);
+
+  /**
+   * Create a new profile
+   * @param {string} name - Profile name (displayed to user)
+   * @param {string} emoji - Emoji for the profile
+   * @param {string} color - Hex color for the profile
+   * @returns {object} The created profile or null if failed
+   */
+  const createProfile = useCallback((name, emoji, color) => {
+    try {
+      if (!name || name.trim().length < 2) {
+        console.warn("Profile name too short");
+        return null;
+      }
+
+      const profileId = generateProfileId(name);
+      const newProfile = {
+        id: profileId,
+        label: `${emoji} ${name}`,
+        emoji,
+        color,
+        createdAt: Date.now()
+      };
+
+      // Add to registry
+      const registry = JSON.parse(localStorage.getItem(PROFILES_REGISTRY_KEY));
+      registry.profiles.push(newProfile);
+      localStorage.setItem(PROFILES_REGISTRY_KEY, JSON.stringify(registry));
+
+      // Initialize profile data
+      localStorage.setItem(getStoreKey(profileId), JSON.stringify(INITIAL_STATE));
+
+      return newProfile;
+    } catch (e) {
+      console.warn("Create profile error:", e);
+      return null;
+    }
+  }, []);
+
+  /**
+   * Delete a profile and all its data
+   * @param {string} profileId - ID of profile to delete
+   * @returns {boolean} Success status
+   */
+  const deleteProfile = useCallback((profileId) => {
+    try {
+      const allProfiles = getAllProfiles();
+
+      // Cannot delete if only one profile remains
+      if (allProfiles.length <= 1) {
+        console.warn("Cannot delete the only profile");
+        return false;
+      }
+
+      // Remove from registry
+      const registry = JSON.parse(localStorage.getItem(PROFILES_REGISTRY_KEY));
+      registry.profiles = registry.profiles.filter(p => p.id !== profileId);
+      localStorage.setItem(PROFILES_REGISTRY_KEY, JSON.stringify(registry));
+
+      // Delete profile data
+      localStorage.removeItem(getStoreKey(profileId));
+
+      // If deleted profile was active, switch to first available profile
+      const currentProfile = getCurrentProfile();
+      if (currentProfile === profileId) {
+        const firstProfile = registry.profiles[0];
+        switchProfile(firstProfile.id);
+      }
+
+      return true;
+    } catch (e) {
+      console.warn("Delete profile error:", e);
+      return false;
+    }
+  }, [switchProfile]);
+
+  /**
+   * Get all profiles
+   */
+  const getProfiles = useCallback(() => {
+    return getAllProfiles().sort((a, b) => b.createdAt - a.createdAt);
   }, []);
 
   return {
@@ -140,6 +286,9 @@ export function useLocalStorage() {
     recordError,
     getMostFailedOperations,
     profile,
-    switchProfile
+    switchProfile,
+    createProfile,
+    deleteProfile,
+    getProfiles
   };
 }
