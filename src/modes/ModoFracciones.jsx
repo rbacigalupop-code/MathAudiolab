@@ -6,6 +6,7 @@ import { InstrumentoIndicator } from "../components/InstrumentoIndicator";
 import { useWeightedSampling } from "../hooks/useWeightedSampling";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useMascotaContext } from "../contexts/MascotaFocaContext";
+import { useMelodyComposer } from "../contexts/MelodyComposerContext";
 import { useProgressiveHints } from "../hooks/useProgressiveHints";
 
 const NIVELES_FRACCIONES = [
@@ -52,6 +53,7 @@ export default function ModoFracciones({ store, setStore, audio, instrumento, se
   const { getWeightedProblem, recordAttempt } = useWeightedSampling(store);
   const { recordError } = useLocalStorage();
   const { triggerPunch, updateHint, resetHints } = useMascotaContext();
+  const { addNote } = useMelodyComposer();
 
   // Pistas progresivas: aparecen al demorar (10s) o al fallar
   const {
@@ -168,6 +170,8 @@ export default function ModoFracciones({ store, setStore, audio, instrumento, se
       // Resetear pistas pedagógicas al acertar
       resetHints();
       resetHintsHook();
+      // Agregar nota a la melodía (suma numerador+denominador para variedad)
+      addNote(respuesta.num + respuesta.den, "frac", ns, `${num1}/${den1}${operacion}${num2}/${den2}`);
 
       setStore((prev) => {
         const next = {

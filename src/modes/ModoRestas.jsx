@@ -6,6 +6,7 @@ import { InstrumentoIndicator } from "../components/InstrumentoIndicator";
 import { useWeightedSampling } from "../hooks/useWeightedSampling";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useMascotaContext } from "../contexts/MascotaFocaContext";
+import { useMelodyComposer } from "../contexts/MelodyComposerContext";
 import { useProgressiveHints } from "../hooks/useProgressiveHints";
 
 const NIVELES_RESTAS = [
@@ -40,6 +41,7 @@ export default function ModoRestas({ store, setStore, audio, instrumento, setRoc
   const { getWeightedProblem, recordAttempt } = useWeightedSampling(store);
   const { recordError } = useLocalStorage();
   const { triggerPunch, updateHint, resetHints } = useMascotaContext();
+  const { addNote } = useMelodyComposer();
 
   // Pistas progresivas: aparecen al demorar (10s) o al fallar
   const {
@@ -133,6 +135,8 @@ export default function ModoRestas({ store, setStore, audio, instrumento, setRoc
       // Resetear pistas pedagógicas al acertar
       resetHints();
       resetHintsHook();
+      // Agregar nota a la melodía compuesta
+      addNote(correcto, "-", ns, `${num1}-${num2}`);
 
       setStore((prev) => {
         const next = {

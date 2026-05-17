@@ -7,6 +7,7 @@ import { LessonPanel } from "../components/LessonPanel";
 import { useWeightedSampling } from "../hooks/useWeightedSampling";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useMascotaContext } from "../contexts/MascotaFocaContext";
+import { useMelodyComposer } from "../contexts/MelodyComposerContext";
 import { useProgressiveHints } from "../hooks/useProgressiveHints";
 import { getBandIdFromName } from "../constants/mascota";
 import { notaPara, TC, NIVELES, ACIERTOS_PARA_SUBIR, SOL } from "../constants/music";
@@ -51,6 +52,7 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
 
   // Hook para mascota interactiva
   const { triggerPunch, setCurrentBanda, updateHint, resetHints } = useMascotaContext();
+  const { addNote } = useMelodyComposer();
 
   // Hook para pistas progresivas (10s espera + avance por errores)
   const {
@@ -174,6 +176,8 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
       triggerPunch(); // Animar la mascota
       resetHints(); // Resetear pistas progresivas (contexto)
       resetHintsHook(); // Resetear el hook de pistas
+      // Agregar nota a la melodía compuesta
+      addNote(correct, "×", ns, `${tabla}×${factor}`);
       const nota = notaPara(tabla, factor);
       setAN(nota.t);
 

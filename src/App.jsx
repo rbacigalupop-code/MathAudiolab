@@ -25,7 +25,9 @@ import ModoBatalla from "./modes/ModoBatalla";
 import ModoLecciones from "./modes/ModoLecciones";
 import SamplesTest from "./components/SamplesTest";
 import { MascotaFocaProvider, useMascotaContext } from "./contexts/MascotaFocaContext";
+import { MelodyComposerProvider } from "./contexts/MelodyComposerContext";
 import MascotaFoca from "./components/MascotaFoca";
+import { MelodyPanel } from "./components/MelodyPanel";
 import lessonesData from "./data/lessons.json";
 
 const NIVELES = [
@@ -222,6 +224,9 @@ export function MainApp({ store, setStore, profile, switchProfile, onProfileChan
         {/* Progress Stats */}
         <ProgressStats store={store} />
 
+        {/* Melody Composer: cada acierto agrega una nota */}
+        <MelodyPanel audio={audio} instrumento={instrumento} />
+
         {/* Modo tabs */}
         <div
           style={{
@@ -367,15 +372,17 @@ export default function App() {
   if (selectedProfile) {
     return (
       <MascotaFocaProvider>
-        <MainApp
-          store={store}
-          setStore={updateStore}
-          profile={profile}
-          switchProfile={switchProfile}
-          onProfileChange={(newProfile) => setSelectedProfile(newProfile)}
-          onSwitchToParent={() => setSelectedProfile(null)}
-        />
-        <MascotaFoca />
+        <MelodyComposerProvider>
+          <MainApp
+            store={store}
+            setStore={updateStore}
+            profile={profile}
+            switchProfile={switchProfile}
+            onProfileChange={(newProfile) => setSelectedProfile(newProfile)}
+            onSwitchToParent={() => setSelectedProfile(null)}
+          />
+          <MascotaFoca />
+        </MelodyComposerProvider>
       </MascotaFocaProvider>
     );
   }
@@ -383,8 +390,10 @@ export default function App() {
   // Otherwise, show AuthGate for mode selection
   return (
     <MascotaFocaProvider>
-      <AuthGate onProfileSelected={(profileId) => setSelectedProfile(profileId)} />
-      <MascotaFoca />
+      <MelodyComposerProvider>
+        <AuthGate onProfileSelected={(profileId) => setSelectedProfile(profileId)} />
+        <MascotaFoca />
+      </MelodyComposerProvider>
     </MascotaFocaProvider>
   );
 }

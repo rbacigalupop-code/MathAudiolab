@@ -7,6 +7,7 @@ import { InstrumentoIndicator } from "../components/InstrumentoIndicator";
 import { useWeightedSampling } from "../hooks/useWeightedSampling";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useMascotaContext } from "../contexts/MascotaFocaContext";
+import { useMelodyComposer } from "../contexts/MelodyComposerContext";
 import { useProgressiveHints } from "../hooks/useProgressiveHints";
 import { getBandIdFromName } from "../constants/mascota";
 
@@ -63,6 +64,7 @@ export default function ModoDivision({ store, setStore, audio, instrumento, setR
 
   // Hook para mascota interactiva
   const { triggerPunch, setCurrentBanda, updateHint, resetHints } = useMascotaContext();
+  const { addNote } = useMelodyComposer();
 
   // Hook para pistas progresivas (10s espera + avance por errores)
   const {
@@ -167,6 +169,8 @@ export default function ModoDivision({ store, setStore, audio, instrumento, setR
       triggerPunch(); // Animar la mascota
       resetHints(); // Resetear pistas progresivas (contexto)
       resetHintsHook(); // Resetear el hook de pistas
+      // Agregar nota a la melodía compuesta
+      addNote(respuestaEsperada, "÷", ns, `${dividendo}÷${divisor}`);
 
       await audio.playDivisionSuccess(instrumento, divisor, respuestaEsperada);
 
