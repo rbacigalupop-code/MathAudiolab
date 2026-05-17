@@ -7,6 +7,11 @@ export default function SplashScreen({ onReady }) {
   const [estado, setEstado] = useState("idle");
   const [progreso, setProgreso] = useState(0);
 
+  // Verify deployment timestamp
+  if (typeof window !== "undefined") {
+    console.log("🎸 MathAudioLab loaded successfully - Build:", __BUILD_TIME__);
+  }
+
   const handleClick = async () => {
     if (estado !== "idle") return;
     setEstado("loading");
