@@ -1,15 +1,11 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BandGuideModal } from "./BandGuideModal";
-import AudioLegendModal from "./AudioLegendModal";
 import { AnalyticsDashboardV2 } from "./AnalyticsDashboardV2";
 import { GamificacionAvanzada } from "./GamificacionAvanzada";
 import { NewProfileModal } from "./NewProfileModal";
 
 export function SettingsPanel({ store, setStore, profile, switchProfile, zenMode, setZenMode }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [showBandGuide, setShowBandGuide] = useState(false);
-  const [showAudioLegend, setShowAudioLegend] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showGamificacion, setShowGamificacion] = useState(false);
   const [showNewProfileModal, setShowNewProfileModal] = useState(false);
@@ -382,32 +378,6 @@ export function SettingsPanel({ store, setStore, profile, switchProfile, zenMode
                 </div>
               </div>
 
-              {/* Audio Legend Button */}
-              <button
-                onClick={() => setShowAudioLegend(true)}
-                style={{
-                  width: "100%",
-                  padding: "10px",
-                  marginBottom: 8,
-                  borderRadius: 8,
-                  border: "1.5px solid #f97316",
-                  background: "#f973161a",
-                  color: "#f97316",
-                  fontWeight: 700,
-                  fontSize: "12px",
-                  cursor: "pointer",
-                  transition: "all .2s",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "#f97316aa";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "#f973161a";
-                }}
-              >
-                🎵 Cómo Funcionan los Sonidos
-              </button>
-
               {/* Analytics Button */}
               <button
                 onClick={() => setShowAnalytics(true)}
@@ -460,32 +430,6 @@ export function SettingsPanel({ store, setStore, profile, switchProfile, zenMode
                 🎮 Gamificación Avanzada
               </button>
 
-              {/* Band Guide Button */}
-              <button
-                onClick={() => setShowBandGuide(true)}
-                style={{
-                  width: "100%",
-                  padding: "10px",
-                  marginBottom: 8,
-                  borderRadius: 8,
-                  border: "1.5px solid #a855f7",
-                  background: "#a855f71a",
-                  color: "#a855f7",
-                  fontWeight: 700,
-                  fontSize: "12px",
-                  cursor: "pointer",
-                  transition: "all .2s",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "#a855f733";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "#a855f71a";
-                }}
-              >
-                🎸 Band Guide
-              </button>
-
               <button
                 onClick={() => setIsOpen(false)}
                 style={{
@@ -506,18 +450,6 @@ export function SettingsPanel({ store, setStore, profile, switchProfile, zenMode
           </>
         )}
       </AnimatePresence>
-
-      {/* Audio Legend Modal */}
-      <AudioLegendModal
-        isOpen={showAudioLegend}
-        onClose={() => setShowAudioLegend(false)}
-      />
-
-      {/* Band Guide Modal */}
-      <BandGuideModal
-        isOpen={showBandGuide}
-        onClose={() => setShowBandGuide(false)}
-      />
 
       {/* Analytics Dashboard V2 */}
       {showAnalytics && (

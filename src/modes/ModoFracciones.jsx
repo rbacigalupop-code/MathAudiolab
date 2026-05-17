@@ -60,7 +60,7 @@ export default function ModoFracciones({ store, setStore, audio, instrumento, se
     currentHint,
     resetHints: resetHintsHook,
     advanceHintOnError,
-  } = useProgressiveHints("fracciones", null, 10000);
+  } = useProgressiveHints("fracciones", 10000);
 
   // Sincronizar hint local con la mascota
   useEffect(() => {

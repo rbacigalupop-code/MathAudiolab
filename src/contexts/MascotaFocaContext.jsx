@@ -5,15 +5,11 @@ import { createContext, useContext, useState, useCallback } from "react";
  * Maneja:
  * - Trigger de animación punch cuando el usuario acierta
  * - Modo actual para tooltips contextuales
- * - Estado de visibilidad del tooltip
+ * - Sistema de pistas progresivas pedagógicas
  */
 
 export const MascotaFocaContext = createContext();
 
-/**
- * Hook para usar el contexto de la mascota
- * @returns {Object} { triggerPunch, setCurrentMode, currentMode, showTooltip, setShowTooltip, currentBanda, setCurrentBanda, audioLegendOpen, setAudioLegendOpen }
- */
 export const useMascotaContext = () => {
   const context = useContext(MascotaFocaContext);
   if (!context) {
@@ -24,10 +20,6 @@ export const useMascotaContext = () => {
       currentMode: "tabla",
       showTooltip: false,
       setShowTooltip: () => {},
-      currentBanda: null,
-      setCurrentBanda: () => {},
-      audioLegendOpen: false,
-      setAudioLegendOpen: () => {},
       currentHint: null,
       updateHint: () => {},
       resetHints: () => {},
@@ -37,38 +29,21 @@ export const useMascotaContext = () => {
   return context;
 };
 
-/**
- * Provider para envolver toda la app
- * Proporciona funciones para interactuar con la mascota
- */
 export function MascotaFocaProvider({ children }) {
   const [punchTrigger, setPunchTrigger] = useState(0);
   const [currentMode, setCurrentMode] = useState("tabla");
   const [showTooltip, setShowTooltip] = useState(false);
-  const [currentBanda, setCurrentBanda] = useState(null); // Para tooltips dinámicos de bandas
-  const [audioLegendOpen, setAudioLegendOpen] = useState(false); // Para AudioLegendModal
-  const [currentHint, setCurrentHint] = useState(null); // Para pistas progresivas
-  const [resetHintsTrigger, setResetHintsTrigger] = useState(0); // Trigger para resetear hints
+  const [currentHint, setCurrentHint] = useState(null);
+  const [resetHintsTrigger, setResetHintsTrigger] = useState(0);
 
-  /**
-   * Dispara la animación de punch de la foca
-   * Se llama desde los modos cuando el usuario acierta
-   */
   const triggerPunch = useCallback(() => {
     setPunchTrigger((prev) => prev + 1);
   }, []);
 
-  /**
-   * Actualiza la pista actual
-   */
   const updateHint = useCallback((hint) => {
     setCurrentHint(hint);
   }, []);
 
-  /**
-   * Resetea el sistema de pistas
-   * Se llama cuando el usuario contesta correctamente
-   */
   const resetHints = useCallback(() => {
     setCurrentHint(null);
     setResetHintsTrigger((prev) => prev + 1);
@@ -81,10 +56,6 @@ export function MascotaFocaProvider({ children }) {
     setCurrentMode,
     showTooltip,
     setShowTooltip,
-    currentBanda,
-    setCurrentBanda,
-    audioLegendOpen,
-    setAudioLegendOpen,
     currentHint,
     updateHint,
     resetHints,

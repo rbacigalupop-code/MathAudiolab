@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { BAND_METADATA } from "../constants/bandMetadata";
 
 /**
  * Hook para pistas progresivas pedagógicas
@@ -15,14 +14,13 @@ import { BAND_METADATA } from "../constants/bandMetadata";
  * Uso:
  * const { currentHint, advanceHintOnError, resetHints } = useProgressiveHints(
  *   "sumas",
- *   null,
  *   10000  // 10 segundos antes de la primera pista por tiempo
  * );
  *
  * // En el handler de error:
  * if (!isCorrect) advanceHintOnError();
  */
-export function useProgressiveHints(mode, banda = null, hintDelayMs = 10000) {
+export function useProgressiveHints(mode, hintDelayMs = 10000) {
   const [hintLevel, setHintLevel] = useState(0);
   const [currentHint, setCurrentHint] = useState(null);
   const [showHint, setShowHint] = useState(false);
@@ -30,7 +28,7 @@ export function useProgressiveHints(mode, banda = null, hintDelayMs = 10000) {
   const startTimeRef = useRef(Date.now());
 
   /**
-   * Obtener pistas pedagógicas basadas en el modo y banda
+   * Obtener pistas pedagógicas basadas en el modo
    *
    * Estrategia pedagógica:
    * - Nivel 1: Recordar el concepto general
@@ -39,11 +37,6 @@ export function useProgressiveHints(mode, banda = null, hintDelayMs = 10000) {
    * - Nivel 4: Ejemplo análogo (NO el problema actual)
    */
   const getHints = useCallback(() => {
-    const bandData = banda ? BAND_METADATA[banda] : null;
-    if (bandData && bandData.progressiveHints) {
-      return bandData.progressiveHints;
-    }
-
     // Pistas pedagógicas por modo (nunca dan la respuesta)
     const modeHints = {
       sumas: [
@@ -90,7 +83,7 @@ export function useProgressiveHints(mode, banda = null, hintDelayMs = 10000) {
         "✏️ Intenta dibujar o usar los dedos para visualizar.",
       ]
     );
-  }, [mode, banda]);
+  }, [mode]);
 
   /**
    * Sistema de pistas por TIEMPO (se queda mucho rato sin responder)
@@ -125,7 +118,7 @@ export function useProgressiveHints(mode, banda = null, hintDelayMs = 10000) {
         clearTimeout(timerRef.current);
       }
     };
-  }, [mode, banda, hintDelayMs, getHints]);
+  }, [mode, hintDelayMs, getHints]);
 
   /**
    * Avanzar el nivel de pista CUANDO EL USUARIO FALLA

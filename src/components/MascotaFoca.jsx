@@ -6,7 +6,6 @@ import {
   MASCOTA_SIZE,
   getTooltipForMode,
 } from "../constants/mascota";
-import AudioLegendModal from "./AudioLegendModal";
 
 /* ============================================================
    MASCOTA FOCA  ·  v2 plush + aplauso lateral
@@ -302,9 +301,6 @@ const MascotaFoca = React.memo(() => {
     currentMode,
     showTooltip,
     setShowTooltip,
-    currentBanda,
-    audioLegendOpen,
-    setAudioLegendOpen,
     currentHint,
   } = useMascotaContext();
 
@@ -385,17 +381,12 @@ const MascotaFoca = React.memo(() => {
     }
   }, [currentHint]);
 
-  const tooltipText = getTooltipForMode(currentMode, currentBanda);
+  const tooltipText = getTooltipForMode(currentMode);
   const scale = isMobileDevice ? 0.78 : window.innerWidth < 1024 ? 0.9 : 1;
   const sealClass = ["mf2-seal", isHappy ? "mf2-happy" : "", clapKey ? "mf2-clapping" : "", isBlinking ? "mf2-blink" : ""].filter(Boolean).join(" ");
 
   return (
     <>
-      <AudioLegendModal
-        isOpen={audioLegendOpen}
-        onClose={() => setAudioLegendOpen(false)}
-      />
-
       <motion.div
         className="mf2-host"
         animate={{ scale }}
@@ -450,34 +441,6 @@ const MascotaFoca = React.memo(() => {
               </motion.div>
             )}
           </AnimatePresence>
-
-          {/* Botón "Cómo Funcionan" sobre el tooltip */}
-          {showTooltip && (
-            <motion.button
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setAudioLegendOpen(true)}
-              style={{
-                position: "absolute",
-                bottom: "calc(100% + 70px)",
-                right: 10,
-                backgroundColor: "#f97316",
-                color: "white",
-                border: "none",
-                padding: "8px 12px",
-                borderRadius: 8,
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: "pointer",
-                boxShadow: "0 4px 12px rgba(249,115,22,0.4)",
-                zIndex: 50,
-              }}
-            >
-              🎵 Cómo Funcionan
-            </motion.button>
-          )}
 
           {/* Tooltip */}
           <AnimatePresence>

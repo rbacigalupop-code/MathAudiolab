@@ -9,12 +9,11 @@ import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useMascotaContext } from "../contexts/MascotaFocaContext";
 import { useMelodyComposer } from "../contexts/MelodyComposerContext";
 import { useProgressiveHints } from "../hooks/useProgressiveHints";
-import { getBandIdFromName } from "../constants/mascota";
 import { notaPara, TC, NIVELES, ACIERTOS_PARA_SUBIR, SOL } from "../constants/music";
 
 const DEFAULT_BPM_EJERCICIOS = 120;
 
-export default function ModoEjercicios({ store, setStore, audio, instrumento, setRockActive, rockActive, bandData = null }) {
+export default function ModoEjercicios({ store, setStore, audio, instrumento, setRockActive, rockActive }) {
   // Acceder a recordError del hook de storage
   const { recordError } = useLocalStorage();
 
@@ -51,7 +50,7 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
   const { getWeightedProblem, recordAttempt } = useWeightedSampling(store);
 
   // Hook para mascota interactiva
-  const { triggerPunch, setCurrentBanda, updateHint, resetHints } = useMascotaContext();
+  const { triggerPunch, updateHint, resetHints } = useMascotaContext();
   const { addNote } = useMelodyComposer();
 
   // Hook para pistas progresivas (10s espera + avance por errores)
@@ -59,7 +58,7 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
     currentHint,
     resetHints: resetHintsHook,
     advanceHintOnError,
-  } = useProgressiveHints("ejercicios", null, 10000);
+  } = useProgressiveHints("ejercicios", 10000);
 
   // Sincronizar el hint del hook con el contexto de mascota
   useEffect(() => {
@@ -72,26 +71,6 @@ export default function ModoEjercicios({ store, setStore, audio, instrumento, se
   useEffect(() => {
     return () => timeoutsRef.current.forEach(clearTimeout);
   }, []);
-
-  // Sincronizar BPM y actualizar contexto de banda si bandData cambia
-  useEffect(() => {
-    if (bandData && audio && audio.setSyncedBPM) {
-      const bpm = bandData.bpm || DEFAULT_BPM_EJERCICIOS;
-      audio.setSyncedBPM(bpm);
-      setSyncedBPMLocal(bpm);
-      console.log(`[ModoEjercicios] BPM sincronizado: ${bpm}`);
-
-      // Actualizar contexto de mascota con banda actual (para tooltips dinámicos)
-      const bandId = getBandIdFromName(bandData.name);
-      if (bandId) {
-        setCurrentBanda(bandId);
-        console.log(`[ModoEjercicios] Mascota banda actualizada: ${bandId}`);
-      }
-    } else {
-      // Si no hay bandData, limpiar banda del contexto
-      setCurrentBanda(null);
-    }
-  }, [bandData, audio, setCurrentBanda]);
 
   // Sesión
   useEffect(() => {

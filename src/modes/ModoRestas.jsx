@@ -48,7 +48,7 @@ export default function ModoRestas({ store, setStore, audio, instrumento, setRoc
     currentHint,
     resetHints: resetHintsHook,
     advanceHintOnError,
-  } = useProgressiveHints("restas", null, 10000);
+  } = useProgressiveHints("restas", 10000);
 
   // Sincronizar hint local con la mascota
   useEffect(() => {

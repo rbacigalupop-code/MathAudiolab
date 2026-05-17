@@ -1,47 +1,50 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BAND_METADATA } from "../constants/bandMetadata";
+
+/**
+ * MediaPanel — Contenido multimedia educativo
+ *
+ * Botón con 🎬 en el header que abre un modal con:
+ * - Videos de YouTube educativos por concepto (multiplicación, división, potencias)
+ * - Link a playlists de Spotify temáticas
+ *
+ * Anteriormente incluía un selector de bandas/géneros que se eliminó
+ * en favor del sistema de canciones desbloqueables (MelodyPanel).
+ */
 
 const MEDIA_CONTENT = {
   multiplication: {
     title: "Multiplicación",
-    youtube: "3QPpyuNycQI",
     videos: [
       { title: "MULTIPLICACIÓN y DIVISIÓN - Matemáticas para niños", id: "3QPpyuNycQI" },
       { title: "Aprendiendo a multiplicar - Happy Learning", id: "YFtEaVw5k1A" },
     ],
     spotify: "https://open.spotify.com/playlist/6bx2DXYetqJT0mf748kEUe",
-    spotifyEmbed: "https://open.spotify.com/embed/playlist/6bx2DXYetqJT0mf748kEUe?utm_source=generator",
   },
   division: {
     title: "División",
-    youtube: "zF4GYIbSMzg",
     videos: [
       { title: "La división - Aprende con los monos", id: "zF4GYIbSMzg" },
       { title: "Aprendiendo a dividir - Happy Learning", id: "iA0fP4tL67s" },
     ],
     spotify: "https://open.spotify.com/playlist/2itdA3rmYpuqo1bcJR24x7",
-    spotifyEmbed: "https://open.spotify.com/embed/playlist/2itdA3rmYpuqo1bcJR24x7?utm_source=generator",
   },
   powers: {
     title: "Potencias",
-    youtube: "loEjcsaXh2Y",
     videos: [
       { title: "Las potencias para niños - Matemáticas", id: "loEjcsaXh2Y" },
       { title: "POTENCIAS Super fácil - Para principiantes", id: "-K0ZSm9lPeY" },
     ],
     spotify: "https://open.spotify.com/playlist/2BhCL66fcE7KgwnNhmMrQs",
-    spotifyEmbed: "https://open.spotify.com/embed/playlist/2BhCL66fcE7KgwnNhmMrQs?utm_source=generator",
   },
 };
 
 const YOUTUBE_URL = (videoId) => `https://www.youtube.com/embed/${videoId}?rel=0`;
 
-export function MediaPanel({ mode = "ejercicios", bandData = null, onBandSelect = null }) {
+export function MediaPanel({ mode = "ejercicios" }) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("videos");
   const [selectedVideo, setSelectedVideo] = useState(0);
-  const [selectedBandId, setSelectedBandId] = useState(null);
 
   const modeMap = {
     tabla: "multiplication",
@@ -92,7 +95,6 @@ export function MediaPanel({ mode = "ejercicios", bandData = null, onBandSelect 
       <AnimatePresence>
         {isOpen && (
           <>
-            {/* Overlay */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -109,23 +111,21 @@ export function MediaPanel({ mode = "ejercicios", bandData = null, onBandSelect 
               }}
             />
 
-            {/* Modal */}
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
               style={{
                 position: "fixed",
-                top: "50vh",
-                left: "50vw",
-                marginLeft: "-300px",
-                marginTop: "-280px",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
                 background: "#0f172a",
                 border: "2px solid #a855f7",
                 borderRadius: 16,
                 padding: "20px",
-                width: "600px",
-                maxHeight: "560px",
+                width: "min(600px, 95vw)",
+                maxHeight: "85vh",
                 overflowY: "auto",
                 boxShadow: "0 20px 60px rgba(0,0,0,0.8)",
                 zIndex: 1001,
@@ -149,9 +149,9 @@ export function MediaPanel({ mode = "ejercicios", bandData = null, onBandSelect 
                 </button>
               </div>
 
-              {/* Tabs */}
-              <div style={{ display: "flex", gap: 8, marginBottom: 16, borderBottom: "1px solid #334155", paddingBottom: 8, overflowX: "auto" }}>
-                {["videos", "bandas", "spotify"].map(tab => (
+              {/* Tabs (sin la pestaña de Bandas que se eliminó) */}
+              <div style={{ display: "flex", gap: 8, marginBottom: 16, borderBottom: "1px solid #334155", paddingBottom: 8 }}>
+                {["videos", "spotify"].map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
@@ -165,15 +165,13 @@ export function MediaPanel({ mode = "ejercicios", bandData = null, onBandSelect 
                       fontSize: "12px",
                       cursor: "pointer",
                       transition: "all .2s",
-                      whiteSpace: "nowrap",
                     }}
                   >
-                    {tab === "videos" ? "📹 Videos" : tab === "bandas" ? "🎸 Bandas" : "🎵 Música"}
+                    {tab === "videos" ? "📹 Videos" : "🎵 Música"}
                   </button>
                 ))}
               </div>
 
-              {/* Videos Tab */}
               {activeTab === "videos" && (
                 <div>
                   <div style={{ marginBottom: 16, borderRadius: 10, overflow: "hidden" }}>
@@ -207,75 +205,35 @@ export function MediaPanel({ mode = "ejercicios", bandData = null, onBandSelect 
                           transition: "all .2s",
                         }}
                       >
-                        {selectedVideo === idx ? "▶ " : "○ "}{video.title}
+                        {selectedVideo === idx ? "▶ " : "○ "}
+                        {video.title}
                       </button>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* Bandas Tab */}
-              {activeTab === "bandas" && (
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  {Object.entries(BAND_METADATA).map(([bandId, band]) => (
-                    <button
-                      key={bandId}
-                      onClick={() => {
-                        setSelectedBandId(bandId);
-                        if (onBandSelect) {
-                          const track = band.tracks[0];
-                          onBandSelect(bandId, {
-                            name: band.name,
-                            bpm: track.bpm,
-                            concept: band.concept
-                          });
-                        }
-                      }}
-                      style={{
-                        padding: "12px",
-                        borderRadius: 8,
-                        border: selectedBandId === bandId ? "2px solid #06b6d4" : "1px solid #334155",
-                        background: selectedBandId === bandId ? "#06b6d41a" : "#1e293b",
-                        color: "#f1f5f9",
-                        fontWeight: 700,
-                        fontSize: "13px",
-                        textAlign: "left",
-                        cursor: "pointer",
-                        transition: "all .2s",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.borderColor = "#06b6d4";
-                      }}
-                      onMouseLeave={(e) => {
-                        if (selectedBandId !== bandId) {
-                          e.currentTarget.style.borderColor = "#334155";
-                        }
-                      }}
-                    >
-                      <div>{selectedBandId === bandId ? "▶ " : "○ "}{band.name}</div>
-                      <div style={{ fontSize: "11px", color: "#94a3b8", marginTop: 4 }}>
-                        {band.genre} • {band.concept.charAt(0).toUpperCase() + band.concept.slice(1)}
-                      </div>
-                      <div style={{ fontSize: "11px", color: "#64748b", marginTop: 4 }}>
-                        {band.tracks.map(t => `${t.title} (${t.bpm} BPM)`).join(" • ")}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
-
-              {/* Spotify Tab */}
               {activeTab === "spotify" && (
-                <div style={{ minHeight: 300, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <p style={{ color: "#64748b", textAlign: "center" }}>
-                    🎵 Abre Spotify en otra pestaña<br />
+                <div style={{ minHeight: 200, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <p style={{ color: "#cbd5e1", textAlign: "center", lineHeight: 1.6 }}>
+                    🎵 Playlist temática en Spotify
+                    <br />
                     <a
                       href={content.spotify}
                       target="_blank"
                       rel="noopener noreferrer"
-                      style={{ color: "#a855f7", textDecoration: "none" }}
+                      style={{
+                        color: "#a855f7",
+                        textDecoration: "none",
+                        fontWeight: 700,
+                        display: "inline-block",
+                        marginTop: 12,
+                        padding: "10px 20px",
+                        border: "2px solid #a855f7",
+                        borderRadius: 8,
+                      }}
                     >
-                      → Ir a Playlist
+                      → Abrir en Spotify
                     </a>
                   </p>
                 </div>

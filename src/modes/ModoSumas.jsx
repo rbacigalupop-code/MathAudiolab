@@ -48,7 +48,7 @@ export default function ModoSumas({ store, setStore, audio, instrumento, setRock
     currentHint,
     resetHints: resetHintsHook,
     advanceHintOnError,
-  } = useProgressiveHints("sumas", null, 10000);
+  } = useProgressiveHints("sumas", 10000);
 
   // Sincronizar hint local con la mascota
   useEffect(() => {

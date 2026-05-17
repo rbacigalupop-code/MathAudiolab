@@ -4,27 +4,9 @@
  */
 
 import educationalManual from "./educationalManual.json";
-import { BAND_METADATA } from "./bandMetadata";
 
 /**
- * Map band names to band IDs for context passing
- * @param {string} bandName - Band name (e.g., "My Chemical Romance")
- * @returns {string|null} Band ID (e.g., "mcr") or null if not found
- */
-export function getBandIdFromName(bandName) {
-  if (!bandName) return null;
-
-  const bandNameLower = bandName.toLowerCase();
-  for (const [bandId, bandData] of Object.entries(BAND_METADATA)) {
-    if (bandData.name.toLowerCase() === bandNameLower) {
-      return bandId;
-    }
-  }
-  return null;
-}
-
-/**
- * Static tooltips as fallback
+ * Static tooltips por modo de juego
  */
 export const MASCOTA_TOOLTIPS = {
   tabla: "📖 Tabla: Presiona para ver la tabla completa",
@@ -36,19 +18,22 @@ export const MASCOTA_TOOLTIPS = {
   sumas: "➕ Sumas: Combina números y suma",
   restas: "➖ Restas: Quita para encontrar la diferencia",
   fracciones: "🔀 Fracciones: Divide el mundo en partes",
-  lecciones: "📚 Lecciones: Aprende con bandas reales",
+  lecciones: "📚 Lecciones: Aprende con música",
 };
 
 /**
- * Get dynamic tooltip for current mode and optional banda
+ * Get dynamic tooltip for current mode
  * Uses educationalManual.json for rich pedagogical content
+ *
+ * NOTE: The 2nd param (legacy 'banda') is ignored — kept only for backwards
+ * compatibility with any leftover call sites until full cleanup.
+ *
  * @param {string} mode - Current game mode (ejercicios, potencias, etc)
- * @param {string} banda - Optional band name (mcr, bunkers, twice, blackpink)
  * @returns {string} Rich tooltip text with pedagogy tip
  */
-export function getTooltipForMode(mode, banda = null) {
+export function getTooltipForMode(mode /* , _ignoredBanda */) {
   const modeMap = {
-    ejercicios: "powers", // Map mode names to concept names
+    ejercicios: "powers",
     multiplicacion: "powers",
     tabla: "powers",
     potencias: "powers",
@@ -60,19 +45,12 @@ export function getTooltipForMode(mode, banda = null) {
 
   const concept = modeMap[mode] || mode;
 
-  // Try to get band-specific content first
-  if (banda && educationalManual[banda]) {
-    const bandContent = educationalManual[banda];
-    return bandContent.mascotaQuip || MASCOTA_TOOLTIPS[mode];
-  }
-
-  // Fall back to general concept content
+  // Use general concept content from educationalManual
   if (educationalManual.general && educationalManual.general[concept]) {
     const conceptContent = educationalManual.general[concept];
     return conceptContent.mascotaQuip || MASCOTA_TOOLTIPS[mode];
   }
 
-  // Final fallback to static tooltip
   return MASCOTA_TOOLTIPS[mode] || "¡Tócame para instrucciones!";
 }
 
@@ -80,23 +58,23 @@ export function getTooltipForMode(mode, banda = null) {
  * Configuración de animaciones para el punch
  */
 export const MASCOTA_ANIMATION = {
-  PUNCH_DURATION: 500,        // ms total
-  SHAKE_DURATION: 250,        // ms para shake phase
-  PULSE_DURATION: 250,        // ms para pulse phase
-  TOOLTIP_TIMEOUT: 4000,      // ms antes de auto-cerrar tooltip
-  PUNCH_ROTATION: 3,          // grados de rotación en shake
-  PUNCH_SCALE_MAX: 1.15,      // escala máxima en pulse
+  PUNCH_DURATION: 500,
+  SHAKE_DURATION: 250,
+  PULSE_DURATION: 250,
+  TOOLTIP_TIMEOUT: 4000,
+  PUNCH_ROTATION: 3,
+  PUNCH_SCALE_MAX: 1.15,
 };
 
 /**
  * Paleta de colores para la foca
  */
 export const MASCOTA_COLORS = {
-  BODY: "#FFF8DC",            // Cream/tan para el cuerpo
-  OUTLINE: "#8B7355",         // Marrón para outline
-  EYE: "#000000",             // Negro para los ojos
-  MOUTH: "#8B7355",           // Marrón para la boca
-  CHEEK: "#FFB6C1",           // Rosa claro para mejillas
+  BODY: "#FFF8DC",
+  OUTLINE: "#8B7355",
+  EYE: "#000000",
+  MOUTH: "#8B7355",
+  CHEEK: "#FFB6C1",
 };
 
 /**

@@ -9,7 +9,6 @@ import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useMascotaContext } from "../contexts/MascotaFocaContext";
 import { useMelodyComposer } from "../contexts/MelodyComposerContext";
 import { useProgressiveHints } from "../hooks/useProgressiveHints";
-import { getBandIdFromName } from "../constants/mascota";
 
 const POTENCIA_NIVELES = [
   { id: 1, label: "Nivel 1", desc: "Exponente 0–3", maxExp: 3 },
@@ -36,7 +35,7 @@ async function playEscaleraOctavas(base, exponente, audio, instrumento, bpm = DE
   }
 }
 
-export default function ModoPotencias({ store, setStore, audio, instrumento, setRockActive, rockActive, bandData = null }) {
+export default function ModoPotencias({ store, setStore, audio, instrumento, setRockActive, rockActive }) {
   // Ensure nivel is always valid (1-3) - proper type checking instead of Math.max/min with undefined
   const validNivel = (typeof store?.nivel === 'number' && store.nivel >= 1 && store.nivel <= 3)
     ? store.nivel
@@ -60,7 +59,7 @@ export default function ModoPotencias({ store, setStore, audio, instrumento, set
   const { recordError } = useLocalStorage();
 
   // Hook para mascota interactiva
-  const { triggerPunch, setCurrentBanda, updateHint, resetHints } = useMascotaContext();
+  const { triggerPunch, updateHint, resetHints } = useMascotaContext();
   const { addNote } = useMelodyComposer();
 
   // Hook para pistas progresivas (10s espera + avance por errores)
@@ -68,7 +67,7 @@ export default function ModoPotencias({ store, setStore, audio, instrumento, set
     currentHint,
     resetHints: resetHintsHook,
     advanceHintOnError,
-  } = useProgressiveHints("potencias", null, 10000);
+  } = useProgressiveHints("potencias", 10000);
 
   // Sincronizar el hint del hook con el contexto de mascota
   useEffect(() => {
@@ -80,26 +79,6 @@ export default function ModoPotencias({ store, setStore, audio, instrumento, set
   useEffect(() => {
     return () => timeoutsRef.current.forEach(clearTimeout);
   }, []);
-
-  // Sincronizar BPM y actualizar contexto de banda si bandData cambia
-  useEffect(() => {
-    if (bandData && audio && audio.setSyncedBPM) {
-      const bpm = bandData.bpm || DEFAULT_BPM;
-      audio.setSyncedBPM(bpm);
-      setSyncedBPMLocal(bpm);
-      console.log(`[ModoPotencias] BPM sincronizado: ${bpm}`);
-
-      // Actualizar contexto de mascota con banda actual (para tooltips dinámicos)
-      const bandId = getBandIdFromName(bandData.name);
-      if (bandId) {
-        setCurrentBanda(bandId);
-        console.log(`[ModoPotencias] Mascota banda actualizada: ${bandId}`);
-      }
-    } else {
-      // Si no hay bandData, limpiar banda del contexto
-      setCurrentBanda(null);
-    }
-  }, [bandData, audio, setCurrentBanda]);
 
   const newQ = useCallback(() => {
     // Move cfg calculation inside callback to avoid circular dependency

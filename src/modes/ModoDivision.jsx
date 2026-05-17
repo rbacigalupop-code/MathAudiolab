@@ -9,7 +9,6 @@ import { useLocalStorage } from "../hooks/useLocalStorage";
 import { useMascotaContext } from "../contexts/MascotaFocaContext";
 import { useMelodyComposer } from "../contexts/MelodyComposerContext";
 import { useProgressiveHints } from "../hooks/useProgressiveHints";
-import { getBandIdFromName } from "../constants/mascota";
 
 const ACIERTOS_PARA_SUBIR = 5;
 const NIVELES_DIVISION = [
@@ -33,7 +32,7 @@ function generateDivisionProblem(nivel) {
 
 const DEFAULT_BPM_DIVISION = 120;
 
-export default function ModoDivision({ store, setStore, audio, instrumento, setRockActive, rockActive, bandData = null }) {
+export default function ModoDivision({ store, setStore, audio, instrumento, setRockActive, rockActive }) {
   // Ensure nivel is always valid (1-5) - proper type checking instead of Math.max/min with undefined
   const validNivel = (typeof store?.nivel === 'number' && store.nivel >= 1 && store.nivel <= 5)
     ? store.nivel
@@ -63,7 +62,7 @@ export default function ModoDivision({ store, setStore, audio, instrumento, setR
   const { recordError } = useLocalStorage();
 
   // Hook para mascota interactiva
-  const { triggerPunch, setCurrentBanda, updateHint, resetHints } = useMascotaContext();
+  const { triggerPunch, updateHint, resetHints } = useMascotaContext();
   const { addNote } = useMelodyComposer();
 
   // Hook para pistas progresivas (10s espera + avance por errores)
@@ -71,7 +70,7 @@ export default function ModoDivision({ store, setStore, audio, instrumento, setR
     currentHint,
     resetHints: resetHintsHook,
     advanceHintOnError,
-  } = useProgressiveHints("division", null, 10000);
+  } = useProgressiveHints("division", 10000);
 
   // Sincronizar el hint del hook con el contexto de mascota
   useEffect(() => {
@@ -83,26 +82,6 @@ export default function ModoDivision({ store, setStore, audio, instrumento, setR
   useEffect(() => {
     return () => timeoutsRef.current.forEach(clearTimeout);
   }, []);
-
-  // Sincronizar BPM y actualizar contexto de banda si bandData cambia
-  useEffect(() => {
-    if (bandData && audio && audio.setSyncedBPM) {
-      const bpm = bandData.bpm || DEFAULT_BPM_DIVISION;
-      audio.setSyncedBPM(bpm);
-      setSyncedBPMLocal(bpm);
-      console.log(`[ModoDivision] BPM sincronizado: ${bpm}`);
-
-      // Actualizar contexto de mascota con banda actual (para tooltips dinámicos)
-      const bandId = getBandIdFromName(bandData.name);
-      if (bandId) {
-        setCurrentBanda(bandId);
-        console.log(`[ModoDivision] Mascota banda actualizada: ${bandId}`);
-      }
-    } else {
-      // Si no hay bandData, limpiar banda del contexto
-      setCurrentBanda(null);
-    }
-  }, [bandData, audio, setCurrentBanda]);
 
   useEffect(() => {
     sessionRef.current = { correctas: 0, intentos: 0 };
