@@ -28,6 +28,7 @@ import { MascotaFocaProvider, useMascotaContext } from "./contexts/MascotaFocaCo
 import { MelodyComposerProvider } from "./contexts/MelodyComposerContext";
 import MascotaFoca from "./components/MascotaFoca";
 import { MelodyPanel } from "./components/MelodyPanel";
+import { SongCompletionModal } from "./components/SongCompletionModal";
 import lessonesData from "./data/lessons.json";
 
 const NIVELES = [
@@ -226,6 +227,9 @@ export function MainApp({ store, setStore, profile, switchProfile, onProfileChan
 
         {/* Melody Composer: cada acierto agrega una nota */}
         <MelodyPanel audio={audio} instrumento={instrumento} />
+
+        {/* Modal de canción desbloqueada */}
+        <SongCompletionModal audio={audio} instrumento={instrumento} />
 
         {/* Modo tabs */}
         <div
